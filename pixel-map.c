@@ -25,10 +25,10 @@ char const map[] =
 	"\x01\x01\x00\x00\x01\x01\x01\x00\x00\x01";
 
 static int* createEdges(int width, int height) {
-	return calloc((width + 1) * (height * 2 + 1), sizeof(int));
+	return calloc((width + 1 + 3) * (height * 2 + 3), sizeof(int));
 }
 
-static void printEdges(int width, int height, int edges[height * 2 + 1][width + 1], char const data[height][width]) {
+static void printEdges(int width, int height, int edges[height * 2 + 3][width + 3], char const data[height][width]) {
 	static const char* arrows[] = {
 		[ARROW_NONE]  = "∙",
 		[ARROW_RIGHT] = "→",
@@ -37,19 +37,19 @@ static void printEdges(int width, int height, int edges[height * 2 + 1][width + 
 		[ARROW_UP]    = "↑",
 	};
 
-	int ewidth = width + 1;
-	int eheight = height * 2 + 1;
+	int ewidth = width + 3;
+	int eheight = height * 2 + 3;
 
 	for (int y = 0; y < eheight; y++) {
-		if (y % 2 == 0) {
+		if (y % 2 != 0) {
 			printf("  ");
 		}
 
-		for (int x = 0; x < ewidth/* - (y % 2 == 0*/; x++) {
+		for (int x = 0; x < ewidth - (y % 2 != 0); x++) {
 			printf("%s", arrows[edges[y][x]]);
 
-			if (y > 0 && x < width && y < height * 2 && (y % 2) != 0) {
-				printf(" %c ", data[y / 2][x] ? '#' : ' ');
+			if (x > 0 && y >= 2 && x < ewidth - 2 && y < eheight - 2 && (y % 2) == 0) {
+				printf(" %c ", data[(y - 2) / 2][x - 1] ? '#' : ' ');
 			}
 			else {
 				printf("   ");
@@ -60,14 +60,14 @@ static void printEdges(int width, int height, int edges[height * 2 + 1][width + 
 	}
 }
 
-static void addArrows(int width, int height, int edges[height * 2 + 1][width + 1], char const data[height][width]) {
+static void addArrows(int width, int height, int edges[height * 2 + 3][width + 3], char const data[height][width]) {
 	for (int x = 0; x < width; x ++) {
 		for (int y = 0; y <= height; y++) {
 			int p1 = (y > 0) ? data[y - 1][x] : 0;
 			int p2 = (y < height) ? data[y][x] : 0;
 
 			if (p1 != p2) {
-				edges[y * 2][x] = p1 ? ARROW_LEFT : ARROW_RIGHT;
+				edges[y * 2 + 1][x + 1] = p1 ? ARROW_LEFT : ARROW_RIGHT;
 			}
 		}
 	}
@@ -78,19 +78,19 @@ static void addArrows(int width, int height, int edges[height * 2 + 1][width + 1
 			int p2 = (x < width) ? data[y][x] : 0;
 
 			if (p1 != p2) {
-				edges[y * 2 + 1][x] = p1 ? ARROW_DOWN : ARROW_UP;
+				edges[y * 2 + 2][x + 1] = p1 ? ARROW_DOWN : ARROW_UP;
 			}
 		}
 	}
 }
 
-static void makePaths(int width, int height, int edges[height * 2 + 1][width + 1]) {
-	int awidth = width + 1;
-	int aheight = height * 2 + 1;
+static void makePaths(int width, int height, int edges[height * 2 + 3][width + 3]) {
+	int awidth = width + 3;
+	int aheight = height * 2 + 3;
 
 	// round y down to multiple of 2 and goto next horizontal arrow row
-	for (int y = 0; y < aheight; y = (y & ~1) + 2) {
-		for (int x = 0; x < awidth; x++) {
+	for (int y = 1; y < aheight - 1; y = ((y & ~1) + 1) + 2) {
+		for (int x = 1; x < awidth - 1; x++) {
 			int a = edges[y][x];
 			int xd = x;
 			int yd = y;
@@ -234,9 +234,9 @@ static void makePaths(int width, int height, int edges[height * 2 + 1][width + 1
 
 					printf("m %d %d ", xr, yr);
 
-					//usleep(250 * 1000);
-					//printf("\n");
-					//printEdges(width, height, (void*)edges, (void const*)map);
+					usleep(250 * 1000);
+					printf("\n");
+					printEdges(width, height, (void*)edges, (void const*)map);
 				}
 				while (a);
 
