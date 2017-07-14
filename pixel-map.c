@@ -88,7 +88,7 @@ static void makePaths(int width, int height, int edges[height * 2 + 3][width + 3
 	int awidth = width + 3;
 	int aheight = height * 2 + 3;
 
-	// round y down to multiple of 2 and goto next horizontal arrow row
+	// round y down to multiple of 2 + 1 and goto next horizontal arrow row
 	for (int y = 1; y < aheight - 1; y = ((y & ~1) + 1) + 2) {
 		for (int x = 1; x < awidth - 1; x++) {
 			int a = edges[y][x];
@@ -101,7 +101,7 @@ static void makePaths(int width, int height, int edges[height * 2 + 3][width + 3
 				int ra = ARROW_NONE;
 
 				/*
-				static int states[5][3][3] = {
+				static unsigned char states[5][3][3] = {
 					[ARROW_RIGHT] = {
 						{+1, -1, ARROW_UP},
 						{+1, +0, ARROW_RIGHT},
@@ -133,45 +133,43 @@ static void makePaths(int width, int height, int edges[height * 2 + 3][width + 3
 					// left and right arrows
 					switch (ra) {
 						case ARROW_RIGHT: {
-							xr = xd;
-							yr = yd / 2;
+							xr = xd - 1;
+							yr = (yd - 1) / 2;
 
-							if (xd < awidth - 1) {
-								// has arrow right above
-								if (yd > 0 && edges[yd - 1][xd + 1] == ARROW_UP) {
-									xd++; yd--;
-									a = ARROW_UP;
-								}
-								// has arrow right
-								else if (edges[yd][xd + 1] == ARROW_RIGHT) {
-									xd++;
-									a = ARROW_RIGHT;
-								}
-								// has arrow right below
-								else if (yd < aheight - 1 && edges[yd + 1][xd + 1] == ARROW_DOWN) {
-									xd++; yd++;
-									a = ARROW_DOWN;
-								}
+							// has arrow right above
+							if (edges[yd - 1][xd + 1] == ARROW_UP) {
+								xd++; yd--;
+								a = ARROW_UP;
+							}
+							// has arrow right
+							else if (edges[yd][xd + 1] == ARROW_RIGHT) {
+								xd++;
+								a = ARROW_RIGHT;
+							}
+							// has arrow right below
+							else if (edges[yd + 1][xd + 1] == ARROW_DOWN) {
+								xd++; yd++;
+								a = ARROW_DOWN;
 							}
 
 							break;
 						}
 						case ARROW_LEFT: {
-							xr = xd + 1;
-							yr = yd / 2;
+							xr = xd + 1 - 1;
+							yr = (yd - 1) / 2;
 
 							// has arrow left below
-							if (yd < aheight - 1 && edges[yd + 1][xd] == ARROW_DOWN) {
+							if (edges[yd + 1][xd] == ARROW_DOWN) {
 								yd++;
 								a = ARROW_DOWN;
 							}
 							// has arrow left
-							else if (xd > 0 && edges[yd][xd - 1] == ARROW_LEFT) {
+							else if (edges[yd][xd - 1] == ARROW_LEFT) {
 								xd--;
 								a = ARROW_LEFT;
 							}
 							// has arrow left above
-							else if (yd > 0 && edges[yd - 1][xd] == ARROW_UP) {
+							else if (edges[yd - 1][xd] == ARROW_UP) {
 								yd--;
 								a = ARROW_UP;
 							}
@@ -179,49 +177,45 @@ static void makePaths(int width, int height, int edges[height * 2 + 3][width + 3
 							break;
 						}
 						case ARROW_DOWN: {
-							xr = xd;
-							yr = yd / 2;
+							xr = xd - 1;
+							yr = (yd - 1) / 2;
 
-							if (yd < aheight - 1) {
-								// has arrow right below
-								if (edges[yd + 1][xd] == ARROW_RIGHT) {
-									yd++;
-									a = ARROW_RIGHT;
-								}
-								// has arrow below
-								else if (yd < aheight - 2 && edges[yd + 2][xd] == ARROW_DOWN) {
-									yd += 2;
-									a = ARROW_DOWN;
-								}
-								// has arrow left down
-								else if (xd > 0 && edges[yd + 1][xd - 1] == ARROW_LEFT) {
-									xd--; yd++;
-									a = ARROW_LEFT;
-								}
+							// has arrow right below
+							if (edges[yd + 1][xd] == ARROW_RIGHT) {
+								yd++;
+								a = ARROW_RIGHT;
+							}
+							// has arrow below
+							else if (edges[yd + 2][xd] == ARROW_DOWN) {
+								yd += 2;
+								a = ARROW_DOWN;
+							}
+							// has arrow left down
+							else if (edges[yd + 1][xd - 1] == ARROW_LEFT) {
+								xd--; yd++;
+								a = ARROW_LEFT;
 							}
 
 							break;
 						}
 						case ARROW_UP: {
-							xr = xd;
-							yr = yd / 2 + 1;
+							xr = xd - 1;
+							yr = (yd - 1) / 2 + 1;
 
-							if (yd > 0) {
-								// has arrow left above
-								if (xd > 0 && edges[yd - 1][xd - 1] == ARROW_LEFT) {
-									xd--; yd--;
-									a = ARROW_LEFT;
-								}
-								// has arrow above
-								else if (yd > 1 && edges[yd - 2][xd] == ARROW_UP) {
-									yd -= 2;
-									a = ARROW_UP;
-								}
-								// has arrow right above
-								else if (edges[yd - 1][xd] == ARROW_RIGHT) {
-									yd--;
-									a = ARROW_RIGHT;
-								}
+							// has arrow left above
+							if (edges[yd - 1][xd - 1] == ARROW_LEFT) {
+								xd--; yd--;
+								a = ARROW_LEFT;
+							}
+							// has arrow above
+							else if (edges[yd - 2][xd] == ARROW_UP) {
+								yd -= 2;
+								a = ARROW_UP;
+							}
+							// has arrow right above
+							else if (edges[yd - 1][xd] == ARROW_RIGHT) {
+								yd--;
+								a = ARROW_RIGHT;
 							}
 
 							break;
@@ -234,7 +228,7 @@ static void makePaths(int width, int height, int edges[height * 2 + 3][width + 3
 
 					printf("m %d %d ", xr, yr);
 
-					usleep(250 * 1000);
+					usleep(50 * 1000);
 					printf("\n");
 					printEdges(width, height, (void*)edges, (void const*)map);
 				}
@@ -242,7 +236,6 @@ static void makePaths(int width, int height, int edges[height * 2 + 3][width + 3
 
 				printf("\n");
 				printEdges(width, height, (void*)edges, (void const*)map);
-				//exit(1);
 			}
 		}
 	}
