@@ -84,6 +84,57 @@ static void addArrows(int width, int height, int edges[height * 2 + 3][width + 3
 	}
 }
 
+struct arrowNext {
+	char dx;
+	char dy;
+	char arrow;
+};
+
+struct arrowState {
+	char rxd;
+	char ryd;
+	struct arrowNext next[3];
+};
+
+static struct arrowState states[5] = {
+	[ARROW_RIGHT] = {
+		.rxd = +0,
+		.ryd = +0,
+		.next = {
+			{+1, -1, ARROW_UP},
+			{+1, +0, ARROW_RIGHT},
+			{+1, +1, ARROW_DOWN},
+		},
+	},
+	[ARROW_LEFT] = {
+		.rxd = +1,
+		.ryd = +0,
+		.next = {
+			{+0, +1, ARROW_DOWN},
+			{-1, +0, ARROW_LEFT},
+			{+0, -1, ARROW_UP},
+		},
+	},
+	[ARROW_DOWN] = {
+		.rxd = +0,
+		.ryd = +0,
+		.next = {
+			{+0, +1, ARROW_RIGHT},
+			{+0, +2, ARROW_DOWN},
+			{-1, +1, ARROW_LEFT},
+		},
+	},
+	[ARROW_UP] = {
+		.rxd = +0,
+		.ryd = +1,
+		.next = {
+			{-1, -1, ARROW_LEFT},
+			{+0, -1, ARROW_UP},
+			{+0, -1, ARROW_RIGHT},
+		},
+	},
+};
+
 static void makePaths(int width, int height, int edges[height * 2 + 3][width + 3]) {
 	int awidth = width + 3;
 	int aheight = height * 2 + 3;
@@ -100,35 +151,27 @@ static void makePaths(int width, int height, int edges[height * 2 + 3][width + 3
 				int yr = 0;
 				int ra = ARROW_NONE;
 
-				/*
-				static unsigned char states[5][3][3] = {
-					[ARROW_RIGHT] = {
-						{+1, -1, ARROW_UP},
-						{+1, +0, ARROW_RIGHT},
-						{+1, +1, ARROW_DOWN},
-					},
-					[ARROW_LEFT] = {
-						{+0, +1, ARROW_DOWN},
-						{-1, +0, ARROW_LEFT},
-						{+0, -1, ARROW_UP},
-					},
-					[ARROW_DOWN] = {
-						{+1, +0, ARROW_RIGHT},
-						{+2, +0, ARROW_DOWN},
-						{+1, -1, ARROW_LEFT},
-					},
-					[ARROW_UP] = {
-						{-1, -1, ARROW_LEFT},
-						{-2, +0, ARROW_UP},
-						{-1, +0, ARROW_RIGHT},
-					},
-				};
-				*/
-
 				do {
 					ra = a;
 					a = ARROW_NONE;
 					edges[yd][xd] = ARROW_NONE;
+
+					/*struct arrowState const* arrow = &states[ra];
+
+					xr = xd - 1 + arrow->rxd;
+					yr = (yd - 1) / 2 + arrow->ryd;
+
+					for (int n = 0; n < 3; n++) {
+						struct arrowNext const* next = &arrow->next[n];
+						int xn = xd + next->dx;
+						int yn = yd + next->dy;
+
+						if (edges[yn][xn] == next->arrow) {
+							xd = xn;
+							yn = yn;
+							a = next->arrow;
+						}
+					}*/
 
 					// left and right arrows
 					switch (ra) {
