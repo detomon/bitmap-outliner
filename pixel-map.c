@@ -61,42 +61,46 @@ static void printEdges(int width, int height, int edges[height * 2 + 3][width + 
 }
 
 static void addArrows(int width, int height, int edges[height * 2 + 3][width + 3], char const data[height][width]) {
-	for (int x = 0; x < width; x ++) {
-		for (int y = 0; y <= height; y++) {
-			int p1 = (y > 0) ? data[y - 1][x] : 0;
-			int p2 = (y < height) ? data[y][x] : 0;
+	int x, y, p, t;
 
-			if (p1 != p2) {
-				edges[y * 2 + 1][x + 1] = p1 ? ARROW_LEFT : ARROW_RIGHT;
+	for (x = 0; x < width; x++) {
+		for (y = 0, t = 0; y < height; y++) {
+			if ((p = data[y][x]) != t) {
+				edges[y * 2 + 1][x + 1] = t ? ARROW_LEFT : ARROW_RIGHT;
+				t = p;
 			}
+		}
+
+		if (data[y - 1][x]) {
+			edges[y * 2 + 1][x + 1] = ARROW_LEFT;
 		}
 	}
 
-	for (int x = 0; x <= width; x ++) {
-		for (int y = 0; y < height; y++) {
-			int p1 = (x > 0) ? data[y][x - 1] : 0;
-			int p2 = (x < width) ? data[y][x] : 0;
-
-			if (p1 != p2) {
-				edges[y * 2 + 2][x + 1] = p1 ? ARROW_DOWN : ARROW_UP;
+	for (y = 0; y < height; y++) {
+		for (x = 0, t = 0; x < width; x++) {
+			if ((p = data[y][x]) != t) {
+				edges[y * 2 + 2][x + 1] = t ? ARROW_DOWN : ARROW_UP;
+				t = p;
 			}
+		}
+
+		if (data[y][x - 1]) {
+			edges[y * 2 + 2][x + 1] = ARROW_DOWN;
 		}
 	}
 }
 
-struct arrowNext {
-	char dx;
-	char dy;
-	char arrow;
-};
-
 struct arrowState {
 	char rxd;
 	char ryd;
-	struct arrowNext next[3];
+	struct arrowNext {
+		char dx;
+		char dy;
+		char arrow;
+	} next[3];
 };
 
-static struct arrowState states[5] = {
+static struct arrowState states[] = {
 	[ARROW_RIGHT] = {
 		.rxd = +0,
 		.ryd = +0,
@@ -129,7 +133,7 @@ static struct arrowState states[5] = {
 		.ryd = +1,
 		.next = {
 			{-1, -1, ARROW_LEFT},
-			{+0, -1, ARROW_UP},
+			{+0, -2, ARROW_UP},
 			{+0, -1, ARROW_RIGHT},
 		},
 	},
@@ -139,135 +143,40 @@ static void makePaths(int width, int height, int edges[height * 2 + 3][width + 3
 	int awidth = width + 3;
 	int aheight = height * 2 + 3;
 
-	// round y down to multiple of 2 + 1 and goto next horizontal arrow row
-	for (int y = 1; y < aheight - 1; y = ((y & ~1) + 1) + 2) {
+	for (int y = 1; y < aheight - 1; y += 2) {
 		for (int x = 1; x < awidth - 1; x++) {
 			int a = edges[y][x];
-			int xd = x;
-			int yd = y;
 
 			if (a) {
-				int xr = 0;
-				int yr = 0;
-				int ra = ARROW_NONE;
+				int reversed = (a == ARROW_LEFT); // assume path is inner path
+				int n0 = reversed ?  2 : 0;
+				int ni = reversed ? -1 : 1;
+				int nn = reversed ? -1 : 3;
+				int xd = x;
+				int yd = y;
 
 				do {
-					ra = a;
+					int xr, yr;
+					struct arrowState const* arrow = &states[a];
+
 					a = ARROW_NONE;
 					edges[yd][xd] = ARROW_NONE;
 
-					/*struct arrowState const* arrow = &states[ra];
-
-					xr = xd - 1 + arrow->rxd;
-					yr = (yd - 1) / 2 + arrow->ryd;
-
-					for (int n = 0; n < 3; n++) {
+					for (int n = n0; n != nn; n += ni) {
 						struct arrowNext const* next = &arrow->next[n];
 						int xn = xd + next->dx;
 						int yn = yd + next->dy;
 
 						if (edges[yn][xn] == next->arrow) {
 							xd = xn;
-							yn = yn;
+							yd = yn;
 							a = next->arrow;
-						}
-					}*/
-
-					// left and right arrows
-					switch (ra) {
-						case ARROW_RIGHT: {
-							xr = xd - 1;
-							yr = (yd - 1) / 2;
-
-							// has arrow right above
-							if (edges[yd - 1][xd + 1] == ARROW_UP) {
-								xd++; yd--;
-								a = ARROW_UP;
-							}
-							// has arrow right
-							else if (edges[yd][xd + 1] == ARROW_RIGHT) {
-								xd++;
-								a = ARROW_RIGHT;
-							}
-							// has arrow right below
-							else if (edges[yd + 1][xd + 1] == ARROW_DOWN) {
-								xd++; yd++;
-								a = ARROW_DOWN;
-							}
-
-							break;
-						}
-						case ARROW_LEFT: {
-							xr = xd + 1 - 1;
-							yr = (yd - 1) / 2;
-
-							// has arrow left below
-							if (edges[yd + 1][xd] == ARROW_DOWN) {
-								yd++;
-								a = ARROW_DOWN;
-							}
-							// has arrow left
-							else if (edges[yd][xd - 1] == ARROW_LEFT) {
-								xd--;
-								a = ARROW_LEFT;
-							}
-							// has arrow left above
-							else if (edges[yd - 1][xd] == ARROW_UP) {
-								yd--;
-								a = ARROW_UP;
-							}
-
-							break;
-						}
-						case ARROW_DOWN: {
-							xr = xd - 1;
-							yr = (yd - 1) / 2;
-
-							// has arrow right below
-							if (edges[yd + 1][xd] == ARROW_RIGHT) {
-								yd++;
-								a = ARROW_RIGHT;
-							}
-							// has arrow below
-							else if (edges[yd + 2][xd] == ARROW_DOWN) {
-								yd += 2;
-								a = ARROW_DOWN;
-							}
-							// has arrow left down
-							else if (edges[yd + 1][xd - 1] == ARROW_LEFT) {
-								xd--; yd++;
-								a = ARROW_LEFT;
-							}
-
-							break;
-						}
-						case ARROW_UP: {
-							xr = xd - 1;
-							yr = (yd - 1) / 2 + 1;
-
-							// has arrow left above
-							if (edges[yd - 1][xd - 1] == ARROW_LEFT) {
-								xd--; yd--;
-								a = ARROW_LEFT;
-							}
-							// has arrow above
-							else if (edges[yd - 2][xd] == ARROW_UP) {
-								yd -= 2;
-								a = ARROW_UP;
-							}
-							// has arrow right above
-							else if (edges[yd - 1][xd] == ARROW_RIGHT) {
-								yd--;
-								a = ARROW_RIGHT;
-							}
-
-							break;
-						}
-						default: {
-							a = ARROW_NONE;
 							break;
 						}
 					}
+
+					xr = xd - 1 + arrow->rxd;
+					yr = (yd - 1) / 2 + arrow->ryd;
 
 					printf("m %d %d ", xr, yr);
 
