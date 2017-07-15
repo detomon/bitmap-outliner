@@ -42,48 +42,22 @@ char const map[] =
 ;
 */
 
-static void printEdges(int width, int height, char edges[height * 2 + 3][width + 3], char const data[height][width]) {
-	static const char* arrows[] = {
-		[ARROW_NONE]  = "∙",
-		[ARROW_RIGHT] = "→",
-		[ARROW_LEFT]  = "←",
-		[ARROW_DOWN]  = "↓",
-		[ARROW_UP]    = "↑",
-	};
-
-	int ewidth = width + 3;
-	int eheight = height * 2 + 3;
-
-	for (int y = 0; y < eheight; y++) {
-		if (y % 2 != 0) {
-			printf("  ");
-		}
-
-		for (int x = 0; x < ewidth - (y % 2 != 0); x++) {
-			printf("%s", arrows[(int)edges[y][x]]);
-
-			if (x > 0 && y >= 2 && x < ewidth - 2 && y < eheight - 2 && (y % 2) == 0) {
-				printf(" %c ", data[(y - 2) / 2][x - 1] ? '#' : ' ');
-			}
-			else {
-				printf("   ");
-			}
-		}
-
-		printf("\n");
-	}
-}
-
+/**
+ * Information about how to proceed to next arrow.
+ */
 struct arrowState {
-	char rxd;
-	char ryd;
+	char rxd; ///< Delta to add to x to convert to real coordinates
+	char ryd; ///< Delta to add to y to convert to real coordinates
 	struct arrowNext {
-		char dx;
-		char dy;
-		char arrow;
-	} next[3];
+		char dx;    ///< Relative to current position
+		char dy;    ///< Relative to current position
+		char arrow; ///< Type of arrow
+	} next[3]; ///< Adjacent arrows
 };
 
+/**
+ * The arrow states.
+ */
 static struct arrowState states[] = {
 	[ARROW_RIGHT] = {
 		.rxd = +0,
@@ -123,7 +97,17 @@ static struct arrowState states[] = {
 	},
 };
 
-static void searchPath(int x, int y, int width, int height, int a, char edges[height * 2 + 3][width + 3]) {
+/**
+ * Follow path at given position.
+ *
+ * @param x First path arrow.
+ * @param y First path arrow.
+ * @param width Width of bitmap.
+ * @param height Height of bitmap.
+ * @param a Type of first arrow.
+ * @param grid Grid to search for paths.
+ */
+static void searchPath(int x, int y, int width, int height, int a, char grid[height * 2 + 3][width + 3]) {
 	// assume path is inner path
 	int reversed = (a == ARROW_LEFT);
 	// set arrow precedence order
@@ -151,7 +135,7 @@ static void searchPath(int x, int y, int width, int height, int a, char edges[he
 	do {
 		a = ARROW_NONE;
 		// clear arrow in grid
-		edges[yd][xd] = ARROW_NONE;
+		grid[yd][xd] = ARROW_NONE;
 
 		// search for adjacent arrows in precedence order
 		for (int n = n0; n != nn; n += ni) {
@@ -161,7 +145,7 @@ static void searchPath(int x, int y, int width, int height, int a, char edges[he
 			int yn = yd + next->dy;
 
 			// follow adjacent arrow
-			if (edges[yn][xn] == next->arrow) {
+			if (grid[yn][xn] == next->arrow) {
 				xd = xn;
 				yd = yn;
 				a = next->arrow;
@@ -202,75 +186,131 @@ static void searchPath(int x, int y, int width, int height, int a, char edges[he
 	printf("z");
 }
 
-static void searchPaths(int width, int height, char edges[height * 2 + 3][width + 3]) {
+/**
+ * Search all paths in arrow grid.
+ *
+ * @param width Width of bitmap.
+ * @param height Height of bitmap.
+ * @param grid Grid to search for paths.
+ */
+static void searchPaths(int width, int height, char grid[height * 2 + 3][width + 3]) {
 	int awidth = width + 3;
 	int aheight = height * 2 + 3;
 
 	// search right and left arrows in grid
 	for (int y = 1; y < aheight - 1; y += 2) {
 		for (int x = 1; x < awidth - 1; x++) {
-			int a = edges[y][x];
+			int a = grid[y][x];
 
 			if (a) {
-				searchPath(x, y, width, height, a, edges);
+				searchPath(x, y, width, height, a, grid);
 			}
 		}
 	}
 }
 
-static void setArrows(int width, int height, char edges[height * 2 + 3][width + 3], char const data[height][width]) {
+/**
+ * Fill arrow grid.
+ *
+ * @param width Width of bitmap.
+ * @param height Height of bitmap.
+ * @param data The bitmap.
+ * @param grid Grid to fill with arrows.
+ */
+static void setArrows(int width, int height, char const map[height][width], char grid[height * 2 + 3][width + 3]) {
 	int x, y, p, t;
 
 	for (x = 0; x < width; x++) {
 		for (y = 0, t = 0; y < height; y++) {
-			if ((p = data[y][x]) != t) {
-				edges[y * 2 + 1][x + 1] = t ? ARROW_LEFT : ARROW_RIGHT;
+			if ((p = map[y][x]) != t) {
+				grid[y * 2 + 1][x + 1] = t ? ARROW_LEFT : ARROW_RIGHT;
 				t = p;
 			}
 		}
 
-		if (data[y - 1][x]) {
-			edges[y * 2 + 1][x + 1] = ARROW_LEFT;
+		if (map[y - 1][x]) {
+			grid[y * 2 + 1][x + 1] = ARROW_LEFT;
 		}
 	}
 
 	for (y = 0; y < height; y++) {
 		for (x = 0, t = 0; x < width; x++) {
-			if ((p = data[y][x]) != t) {
-				edges[y * 2 + 2][x + 1] = t ? ARROW_DOWN : ARROW_UP;
+			if ((p = map[y][x]) != t) {
+				grid[y * 2 + 2][x + 1] = t ? ARROW_DOWN : ARROW_UP;
 				t = p;
 			}
 		}
 
-		if (data[y][x - 1]) {
-			edges[y * 2 + 2][x + 1] = ARROW_DOWN;
+		if (map[y][x - 1]) {
+			grid[y * 2 + 2][x + 1] = ARROW_DOWN;
 		}
 	}
 }
-
-static char* createEdges(int width, int height) {
+/**
+ * Create arrow grid.
+ *
+ * @param width Width of bitmap.
+ * @param height Height of bitmap.
+ * @return Arrow grid.
+ */
+static char* createArrowGrid(int width, int height) {
 	return calloc((width + 1 + 3) * (height * 2 + 3), sizeof(char));
+}
+
+/**
+ * Follow path at given position.
+ *
+ * @param width Width of bitmap.
+ * @param height Height of bitmap.
+ * @param map The bitmap to print.
+ * @param grid The arrow grid to print.
+ */
+static void printGrid(int width, int height, char const map[height][width], char grid[height * 2 + 3][width + 3]) {
+	static const char* arrows[] = {
+		[ARROW_NONE]  = "∙",
+		[ARROW_RIGHT] = "→",
+		[ARROW_LEFT]  = "←",
+		[ARROW_DOWN]  = "↓",
+		[ARROW_UP]    = "↑",
+	};
+
+	int ewidth = width + 3;
+	int eheight = height * 2 + 3;
+
+	for (int y = 0; y < eheight; y++) {
+		if (y % 2 != 0) {
+			printf("  ");
+		}
+
+		for (int x = 0; x < ewidth - (y % 2 != 0); x++) {
+			printf("%s", arrows[(int)grid[y][x]]);
+
+			if (x > 0 && y >= 2 && x < ewidth - 2 && y < eheight - 2 && (y % 2) == 0) {
+				printf(" %c ", map[(y - 2) / 2][x - 1] ? '#' : ' ');
+			}
+			else {
+				printf("   ");
+			}
+		}
+
+		printf("\n");
+	}
 }
 
 int main() {
 	const int width = WIDTH;
 	const int height = HEIGHT;
 
-	size_t size = width * height;
-	char* data = malloc(size);
+	char* grid = createArrowGrid(width, height);
 
-	memset(data, -1, size);
-
-	char* edges = createEdges(width, height);
-
-	setArrows(width, height, (void*)edges, (void const*)map);
+	setArrows(width, height, (void const*)map, (void*)grid);
 
 	printf("<svg viewBox=\"0 0 %d %d\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"", width, height);
-	searchPaths(width, height, (void*)edges);
+	searchPaths(width, height, (void*)grid);
 	printf("\"></path></svg>\n");
 
 	printf("\n");
-	printEdges(width, height, (void*)edges, (void const*)map);
+	printGrid(width, height, (void const*)map, (void*)grid);
 	printf("\n");
 
 	return 0;
