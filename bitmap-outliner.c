@@ -1,4 +1,4 @@
-// clang -O2 -Wall -o pixel-map pixel-map.c
+// clang -O2 -Wall -o bitmap-outliner bitmap-outliner.c
 
 #include <stdint.h>
 #include <stdio.h>
