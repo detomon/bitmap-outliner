@@ -55,13 +55,22 @@ char const map[] =
  * Information about how to proceed to next arrow.
  */
 struct arrowState {
-	char rxd; ///< Delta to add to x to convert to real coordinates
-	char ryd; ///< Delta to add to y to convert to real coordinates
+	int8_t rxd; ///< Delta to add to x to convert to real coordinates
+	int8_t ryd; ///< Delta to add to y to convert to real coordinates
 	struct arrowNext {
-		char dx;    ///< Relative to current position
-		char dy;    ///< Relative to current position
-		char arrow; ///< Type of arrow
+		int8_t dx;     ///< Relative to current position
+		int8_t dy;     ///< Relative to current position
+		uint8_t arrow; ///< Type of arrow
 	} next[3]; ///< Adjacent arrows
+};
+
+/**
+ * Defines arrow.
+ */
+struct arrow {
+	uint8_t type:3;  ///< Arrow type
+	uint8_t inner:1; ///< Associated path is inner path
+	uint8_t seen:1;  ///< If already seen
 };
 
 /**
@@ -113,12 +122,13 @@ static struct arrowState states[] = {
  * @param y First path arrow.
  * @param width Width of bitmap.
  * @param height Height of bitmap.
- * @param a Type of first arrow.
+ * @param a First arrow.
  * @param grid Grid to search for paths.
  */
-static void searchPath(int x, int y, int width, int height, int a, char grid[height * 2 + 3][width + 3]) {
+static void searchPath(int x, int y, int width, int height, struct arrow a, struct arrow grid[height * 2 + 3][width + 3]) {
+	int type = a.type;
 	// assume path is inner path
-	int reversed = (a == ARROW_LEFT);
+	int reversed = (type == ARROW_LEFT);
 	// set arrow precedence order
 	int n0 = reversed ?  2 : 0;
 	int ni = reversed ? -1 : 1;
@@ -128,12 +138,12 @@ static void searchPath(int x, int y, int width, int height, int a, char grid[hei
 	int yd = y;
 
 	// arrow state
-	struct arrowState const* arrow = &states[a];
+	struct arrowState const* arrow = &states[type];
 	// real coordinates
 	int xr = xd - 1 + arrow->rxd;
 	int yr = (yd - 1) / 2 + arrow->ryd;
 	// previous arrow
-	int ap = a;
+	int ap = type;
 
 	// previous path coordinates
 	int xp = xr;
@@ -142,9 +152,9 @@ static void searchPath(int x, int y, int width, int height, int a, char grid[hei
 	printf("M %d %d", xr, yr);
 
 	do {
-		a = ARROW_NONE;
+		type = ARROW_NONE;
 		// clear arrow in grid
-		grid[yd][xd] = ARROW_NONE;
+		grid[yd][xd].type = ARROW_NONE;
 
 		// search for adjacent arrows in precedence order
 		for (int n = n0; n != nn; n += ni) {
@@ -154,23 +164,23 @@ static void searchPath(int x, int y, int width, int height, int a, char grid[hei
 			int yn = yd + next->dy;
 
 			// follow adjacent arrow
-			if (grid[yn][xn] == next->arrow) {
+			if (grid[yn][xn].type == next->arrow) {
 				xd = xn;
 				yd = yn;
-				a = next->arrow;
+				type = next->arrow;
 				break;
 			}
 		}
 
 		// arrow state
-		arrow = &states[a];
+		arrow = &states[type];
 		// real coordinates
 		xr = xd - 1 + arrow->rxd;
 		yr = (yd - 1) / 2 + arrow->ryd;
 
 		// end path segment if arrow changes
 		// and ignore last path segment
-		if (a != ap && a) {
+		if (type != ap && type) {
 			switch (ap) {
 				// arrow of current path segment
 				case ARROW_RIGHT:
@@ -187,10 +197,10 @@ static void searchPath(int x, int y, int width, int height, int a, char grid[hei
 
 			xp = xr;
 			yp = yr;
-			ap = a;
+			ap = type;
 		}
 	}
-	while (a);
+	while (type);
 
 	printf("z");
 }
@@ -202,16 +212,16 @@ static void searchPath(int x, int y, int width, int height, int a, char grid[hei
  * @param height Height of bitmap.
  * @param grid Grid to search for paths.
  */
-static void searchPaths(int width, int height, char grid[height * 2 + 3][width + 3]) {
+static void searchPaths(int width, int height, struct arrow grid[height * 2 + 3][width + 3]) {
 	int awidth = width + 3;
 	int aheight = height * 2 + 3;
 
 	// search right and left arrows in grid
 	for (int y = 1; y < aheight - 1; y += 2) {
 		for (int x = 1; x < awidth - 1; x++) {
-			int a = grid[y][x];
+			struct arrow a = grid[y][x];
 
-			if (a) {
+			if (a.type) {
 				searchPath(x, y, width, height, a, grid);
 			}
 		}
@@ -226,32 +236,32 @@ static void searchPaths(int width, int height, char grid[height * 2 + 3][width +
  * @param data The bitmap.
  * @param grid Grid to fill with arrows.
  */
-static void setArrows(int width, int height, char const map[height][width], char grid[height * 2 + 3][width + 3]) {
+static void setArrows(int width, int height, char const map[height][width], struct arrow grid[height * 2 + 3][width + 3]) {
 	int x, y, p, t;
 
 	for (x = 0; x < width; x++) {
 		for (y = 0, t = 0; y < height; y++) {
 			if ((p = map[y][x]) != t) {
-				grid[y * 2 + 1][x + 1] = t ? ARROW_LEFT : ARROW_RIGHT;
+				grid[y * 2 + 1][x + 1].type = t ? ARROW_LEFT : ARROW_RIGHT;
 				t = p;
 			}
 		}
 
 		if (map[y - 1][x]) {
-			grid[y * 2 + 1][x + 1] = ARROW_LEFT;
+			grid[y * 2 + 1][x + 1].type = ARROW_LEFT;
 		}
 	}
 
 	for (y = 0; y < height; y++) {
 		for (x = 0, t = 0; x < width; x++) {
 			if ((p = map[y][x]) != t) {
-				grid[y * 2 + 2][x + 1] = t ? ARROW_DOWN : ARROW_UP;
+				grid[y * 2 + 2][x + 1].type = t ? ARROW_DOWN : ARROW_UP;
 				t = p;
 			}
 		}
 
 		if (map[y][x - 1]) {
-			grid[y * 2 + 2][x + 1] = ARROW_DOWN;
+			grid[y * 2 + 2][x + 1].type = ARROW_DOWN;
 		}
 	}
 }
@@ -262,8 +272,8 @@ static void setArrows(int width, int height, char const map[height][width], char
  * @param height Height of bitmap.
  * @return Arrow grid.
  */
-static char* createArrowGrid(int width, int height) {
-	return calloc((width + 1 + 3) * (height * 2 + 3), sizeof(char));
+static struct arrow* createArrowGrid(int width, int height) {
+	return calloc((width + 1 + 3) * (height * 2 + 3), sizeof(struct arrow));
 }
 
 /**
@@ -274,7 +284,7 @@ static char* createArrowGrid(int width, int height) {
  * @param map The bitmap to print.
  * @param grid The arrow grid to print.
  */
-static void printGrid(int width, int height, char const map[height][width], char grid[height * 2 + 3][width + 3]) {
+static void printGrid(int width, int height, char const map[height][width], struct arrow grid[height * 2 + 3][width + 3]) {
 	static const char* arrows[] = {
 		[ARROW_NONE]  = "∙",
 		[ARROW_RIGHT] = "→",
@@ -292,7 +302,7 @@ static void printGrid(int width, int height, char const map[height][width], char
 		}
 
 		for (int x = 0; x < ewidth - (y % 2 != 0); x++) {
-			printf("%s", arrows[(int)grid[y][x]]);
+			printf("%s", arrows[(int)grid[y][x].type]);
 
 			if (x > 0 && y >= 2 && x < ewidth - 2 && y < eheight - 2 && (y % 2) == 0) {
 				printf(" %c ", map[(y - 2) / 2][x - 1] ? '#' : ' ');
@@ -310,7 +320,7 @@ int main() {
 	const int width = WIDTH;
 	const int height = HEIGHT;
 
-	char* grid = createArrowGrid(width, height);
+	struct arrow* grid = createArrowGrid(width, height);
 
 	setArrows(width, height, (void const*)map, (void*)grid);
 
