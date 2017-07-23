@@ -1,4 +1,13 @@
-// clang -O2 -Wall -o bitmap-outliner bitmap-outliner.c
+#if 0
+	CC=clang
+	CFLAGS="-Wall -O2"
+	TARGET="/tmp/`basename $0`"
+
+	$CC $CFLAGS -o $TARGET $0 && \
+	$TARGET $@
+
+	exit
+#endif
 
 #include <stdint.h>
 #include <stdio.h>
