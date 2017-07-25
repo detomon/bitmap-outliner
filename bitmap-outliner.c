@@ -1,12 +1,5 @@
 #if 0
-	CC=clang
-	CFLAGS="-Wall -O2"
-	TARGET="/tmp/`basename $0`"
-
-	$CC $CFLAGS -o $TARGET $0 && \
-	$TARGET $@
-
-	exit
+clang -Wall -O2 -o /tmp/`basename $0` $0 && /tmp/`basename $0` $@; exit
 #endif
 
 #include <stdint.h>
