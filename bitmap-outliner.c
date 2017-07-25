@@ -28,8 +28,8 @@ enum {
 enum {
 	COLOR_RESET = 0,
 	COLOR_RED,
-	COLOR_YELLOW,
 	COLOR_GREEN,
+	COLOR_YELLOW,
 };
 
 /*
@@ -229,8 +229,8 @@ static struct arrowState states[][2] = {
 static char const* const colors[] = {
 	[COLOR_RESET]  = "\033[0m",
 	[COLOR_RED]    = "\033[31m",
-	[COLOR_YELLOW] = "\033[33m",
 	[COLOR_GREEN]  = "\033[32m",
+	[COLOR_YELLOW] = "\033[33m",
 };
 
 /**
