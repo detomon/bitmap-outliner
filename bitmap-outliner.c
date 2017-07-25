@@ -92,7 +92,7 @@ struct arrow {
 struct delta {
 	int8_t x;     ///< Delta coordinate.
 	int8_t y;     ///< Delta coordinate.
-	uint8_t type; ///< Arrow type.
+	//uint8_t type; ///< Arrow type.
 };
 
 /**
@@ -100,24 +100,24 @@ struct delta {
  */
 struct delta const directions[][3] = {
 	[ARROW_RIGHT] = {
-		[DIR_STRAIGHT] = {+1,  0, ARROW_RIGHT},
-		[DIR_RIGHT]    = {+1, +1, ARROW_DOWN},
-		[DIR_LEFT]     = {+1, -1, ARROW_UP},
+		[DIR_STRAIGHT] = {+1,  0/*, ARROW_RIGHT*/},
+		[DIR_RIGHT]    = {+1, +1/*, ARROW_DOWN*/},
+		[DIR_LEFT]     = {+1, -1/*, ARROW_UP*/},
 	},
 	[ARROW_LEFT] = {
-		[DIR_STRAIGHT] = {-1,  0, ARROW_LEFT},
-		[DIR_RIGHT]    = { 0, -1, ARROW_UP},
-		[DIR_LEFT]     = { 0, +1, ARROW_DOWN},
+		[DIR_STRAIGHT] = {-1,  0/*, ARROW_LEFT*/},
+		[DIR_RIGHT]    = { 0, -1/*, ARROW_UP*/},
+		[DIR_LEFT]     = { 0, +1/*, ARROW_DOWN*/},
 	},
 	[ARROW_DOWN] = {
-		[DIR_STRAIGHT] = { 0, +2, ARROW_DOWN},
-		[DIR_RIGHT]    = {-1, +1, ARROW_LEFT},
-		[DIR_LEFT]     = { 0, +1, ARROW_RIGHT},
+		[DIR_STRAIGHT] = { 0, +2/*, ARROW_DOWN*/},
+		[DIR_RIGHT]    = {-1, +1/*, ARROW_LEFT*/},
+		[DIR_LEFT]     = { 0, +1/*, ARROW_RIGHT*/},
 	},
 	[ARROW_UP] = {
-		[DIR_STRAIGHT] = { 0, -2, ARROW_UP},
-		[DIR_RIGHT]    = { 0, -1, ARROW_RIGHT},
-		[DIR_LEFT]     = {-1, -1, ARROW_LEFT},
+		[DIR_STRAIGHT] = { 0, -2/*, ARROW_UP*/},
+		[DIR_RIGHT]    = { 0, -1/*, ARROW_RIGHT*/},
+		[DIR_LEFT]     = {-1, -1/*, ARROW_LEFT*/},
 	},
 };
 
