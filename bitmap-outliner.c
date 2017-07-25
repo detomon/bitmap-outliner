@@ -8,8 +8,8 @@ clang -Wall -O2 -o /tmp/`basename $0` $0 && /tmp/`basename $0` $@; exit
 #include <string.h>
 #include <unistd.h>
 
-#define WIDTH 7
-#define HEIGHT 7
+#define WIDTH 5
+#define HEIGHT 10
 
 enum {
 	ARROW_NONE = 0,
@@ -28,8 +28,8 @@ char const map[] =
 	"\x01\x01\x00\x01\x00\x01\x01"
 	"\x01\x01\x00\x01\x00\x01\x01"
 ;
+*/
 
-/*
 char const map[] =
 	"\x01\x00\x01\x00\x01"
 	"\x00\x01\x00\x01\x00"
@@ -42,7 +42,7 @@ char const map[] =
 	"\x00\x01\x00\x01\x00"
 	"\x01\x00\x01\x00\x01"
 ;
-*/
+
 
 /**
  * Information about how to proceed to next arrow.
