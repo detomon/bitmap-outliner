@@ -19,6 +19,20 @@ enum {
 	ARROW_UP
 };
 
+enum {
+	DIR_STRAIGHT = 0,
+	DIR_RIGHT,
+	DIR_LEFT,
+};
+
+enum {
+	COLOR_RESET = 0,
+	COLOR_RED,
+	COLOR_YELLOW,
+	COLOR_GREEN,
+};
+
+/*
 char const map[] =
 	"\x01\x01\x00\x01\x00\x01\x01"
 	"\x00\x00\x01\x00\x01\x00\x00"
@@ -48,68 +62,179 @@ char const map[] =
  * Information about how to proceed to next arrow.
  */
 struct arrowState {
-	int8_t rxd; ///< Delta to add to x to convert to real coordinates
-	int8_t ryd; ///< Delta to add to y to convert to real coordinates
+	int8_t rxd; ///< Delta to add to x to convert to real coordinates.
+	int8_t ryd; ///< Delta to add to y to convert to real coordinates.
 	struct arrowNext {
-		int8_t dx;     ///< Relative to current position
-		int8_t dy;     ///< Relative to current position
-		uint8_t arrow; ///< Type of arrow
-	} next[3]; ///< Adjacent arrows
+		int8_t dir;
+		int8_t isA;
+		int8_t toDir;
+
+		int8_t dx;      ///< Relative to current position.
+		int8_t dy;      ///< Relative to current position.
+		uint8_t arrow;  ///< Type of arrow.
+		uint8_t inner;  ///< Is arrow of inner path.
+	} next[4]; ///< Adjacent arrows.
 };
 
 /**
  * Defines arrow.
  */
 struct arrow {
-	uint8_t type:3;  ///< Arrow type
-	uint8_t inner:1; ///< Associated path is inner path
-	uint8_t seen:1;  ///< If already seen
+	uint8_t type:3;     ///< Arrow type.
+	uint8_t inner:1;    ///< Associated path is inner path.
+	uint8_t seen:1;     ///< If already seen.
+	uint8_t followed:1; ///< If already followed.
+};
+
+/**
+ * Defines coordinate delta.
+ */
+struct delta {
+	int8_t x;     ///< Delta coordinate.
+	int8_t y;     ///< Delta coordinate.
+	uint8_t type; ///< Arrow type.
+};
+
+/**
+ * Coordinates to arrows relative from current arrow.
+ */
+struct delta const directions[][3] = {
+	[ARROW_RIGHT] = {
+		[DIR_STRAIGHT] = {+1,  0, ARROW_RIGHT},
+		[DIR_RIGHT]    = {+1, +1, ARROW_DOWN},
+		[DIR_LEFT]     = {+1, -1, ARROW_UP},
+	},
+	[ARROW_LEFT] = {
+		[DIR_STRAIGHT] = {-1,  0, ARROW_LEFT},
+		[DIR_RIGHT]    = { 0, -1, ARROW_UP},
+		[DIR_LEFT]     = { 0, +1, ARROW_DOWN},
+	},
+	[ARROW_DOWN] = {
+		[DIR_STRAIGHT] = { 0, +2, ARROW_DOWN},
+		[DIR_RIGHT]    = {-1, +1, ARROW_LEFT},
+		[DIR_LEFT]     = { 0, +1, ARROW_RIGHT},
+	},
+	[ARROW_UP] = {
+		[DIR_STRAIGHT] = { 0, -2, ARROW_UP},
+		[DIR_RIGHT]    = { 0, -1, ARROW_RIGHT},
+		[DIR_LEFT]     = {-1, -1, ARROW_LEFT},
+	},
 };
 
 /**
  * The arrow states.
  */
-static struct arrowState states[] = {
+static struct arrowState states[][2] = {
 	[ARROW_RIGHT] = {
-		.rxd = +0,
-		.ryd = +0,
-		.next = {
-			{+1, -1, ARROW_UP},
-			{+1, +0, ARROW_RIGHT},
-			{+1, +1, ARROW_DOWN},
+		// outer
+		{
+			.rxd =  0,
+			.ryd =  0,
+			.next = {
+				{DIR_STRAIGHT, ARROW_LEFT,  DIR_RIGHT,    +1,  0, ARROW_LEFT, 1},
+				{DIR_LEFT,     ARROW_UP,    DIR_LEFT,     +1, -1, ARROW_UP, 0},
+				{DIR_STRAIGHT, ARROW_RIGHT, DIR_STRAIGHT, +1,  0, ARROW_RIGHT, 0},
+				{DIR_RIGHT,    ARROW_DOWN,  DIR_RIGHT,    +1, +1, ARROW_DOWN, 0},
+			},
+		},
+		// inner
+		{
+			.rxd =  0,
+			.ryd =  0,
+			.next = {
+				{DIR_STRAIGHT, ARROW_LEFT,  DIR_LEFT,     +1,  0, ARROW_LEFT, 0},
+				{DIR_RIGHT,    ARROW_DOWN,  DIR_RIGHT,    +1, +1, ARROW_DOWN, 1},
+				{DIR_STRAIGHT, ARROW_RIGHT, DIR_STRAIGHT, +1,  0, ARROW_RIGHT, 1},
+				{DIR_LEFT,     ARROW_UP,    DIR_LEFT,     +1, -1, ARROW_UP, 1},
+			},
 		},
 	},
 	[ARROW_LEFT] = {
-		.rxd = +1,
-		.ryd = +0,
-		.next = {
-			{+0, +1, ARROW_DOWN},
-			{-1, +0, ARROW_LEFT},
-			{+0, -1, ARROW_UP},
+		// outer
+		{
+			.rxd = +1,
+			.ryd =  0,
+			.next = {
+				{DIR_STRAIGHT, ARROW_RIGHT, DIR_RIGHT,    -1,  0, ARROW_RIGHT, 1},
+				{DIR_LEFT,     ARROW_DOWN,  DIR_LEFT,      0, +1, ARROW_DOWN, 0},
+				{DIR_STRAIGHT, ARROW_LEFT,  DIR_STRAIGHT, -1,  0, ARROW_LEFT, 0},
+				{DIR_RIGHT,    ARROW_UP,    DIR_RIGHT,     0, -1, ARROW_UP, 0},
+			},
+		},
+		// inner
+		{
+			.rxd = +1,
+			.ryd =  0,
+			.next = {
+				{DIR_STRAIGHT, ARROW_RIGHT, DIR_LEFT,     -1,  0, ARROW_RIGHT, 0},
+				{DIR_RIGHT,    ARROW_UP,    DIR_RIGHT,     0, -1, ARROW_UP, 1},
+				{DIR_STRAIGHT, ARROW_LEFT,  DIR_STRAIGHT, -1,  0, ARROW_LEFT, 1},
+				{DIR_LEFT,     ARROW_DOWN,  DIR_LEFT,      0, +1, ARROW_DOWN, 1},
+			},
 		},
 	},
 	[ARROW_DOWN] = {
-		.rxd = +0,
-		.ryd = +0,
-		.next = {
-			{+0, +1, ARROW_RIGHT},
-			{+0, +2, ARROW_DOWN},
-			{-1, +1, ARROW_LEFT},
+		// outer
+		{
+			.rxd =  0,
+			.ryd =  0,
+			.next = {
+				{DIR_STRAIGHT, ARROW_UP,    DIR_RIGHT,      0, +2, ARROW_UP, 1},
+				{DIR_LEFT,     ARROW_RIGHT, DIR_LEFT,      0, +1, ARROW_RIGHT, 0},
+				{DIR_STRAIGHT, ARROW_DOWN,  DIR_STRAIGHT,   0, +2, ARROW_DOWN, 0},
+				{DIR_RIGHT,    ARROW_LEFT,  DIR_RIGHT,      -1, +1, ARROW_LEFT, 0},
+			},
+		},
+		// inner
+		{
+			.rxd =  0,
+			.ryd =  0,
+			.next = {
+				{DIR_STRAIGHT, ARROW_UP,    DIR_LEFT,     0, +2, ARROW_UP, 0},
+				{DIR_RIGHT,    ARROW_LEFT,  DIR_RIGHT,    -1, +1, ARROW_LEFT, 1},
+				{DIR_STRAIGHT, ARROW_DOWN,  DIR_STRAIGHT, 0, +2, ARROW_DOWN, 1},
+				{DIR_LEFT,     ARROW_RIGHT, DIR_LEFT,    0, +1, ARROW_RIGHT, 1},
+			},
 		},
 	},
 	[ARROW_UP] = {
-		.rxd = +0,
-		.ryd = +1,
-		.next = {
-			{-1, -1, ARROW_LEFT},
-			{+0, -2, ARROW_UP},
-			{+0, -1, ARROW_RIGHT},
+		// outer
+		{
+			.rxd =  0,
+			.ryd = +1,
+			.next = {
+				{DIR_STRAIGHT, ARROW_DOWN,  DIR_RIGHT,    0, -2, ARROW_DOWN, 1},
+				{DIR_LEFT,     ARROW_LEFT,  DIR_LEFT,    -1, -1, ARROW_LEFT, 0},
+				{DIR_STRAIGHT, ARROW_UP,    DIR_STRAIGHT, 0, -2, ARROW_UP, 0},
+				{DIR_RIGHT,    ARROW_RIGHT, DIR_RIGHT,    0, -1, ARROW_RIGHT, 0},
+			},
+		},
+		// inner
+		{
+			.rxd =  0,
+			.ryd = +1,
+			.next = {
+				{DIR_STRAIGHT, ARROW_DOWN,  DIR_LEFT,      0, -2, ARROW_DOWN, 0},
+				{DIR_RIGHT,    ARROW_RIGHT, DIR_RIGHT,     0, -1, ARROW_RIGHT, 1},
+				{DIR_STRAIGHT, ARROW_UP,    DIR_STRAIGHT,  0, -2, ARROW_UP, 1},
+				{DIR_LEFT,     ARROW_LEFT,  DIR_LEFT,     -1, -1, ARROW_LEFT, 1},
+			},
 		},
 	},
 };
 
 /**
- * Follow path at given position.
+ * Terminal colors.
+ */
+static char const* const colors[] = {
+	[COLOR_RESET]  = "\033[0m",
+	[COLOR_RED]    = "\033[31m",
+	[COLOR_YELLOW] = "\033[33m",
+	[COLOR_GREEN]  = "\033[32m",
+};
+
+/**
+ * Mark arrow as outer and inner.
  *
  * @param x First path arrow.
  * @param y First path arrow.
@@ -118,20 +243,93 @@ static struct arrowState states[] = {
  * @param a First arrow.
  * @param grid Grid to search for paths.
  */
-static void searchPath(int x, int y, int width, int height, struct arrow a, struct arrow grid[height * 2 + 3][width + 3]) {
+static void preparePath(int x, int y, int width, int height, struct arrow a, struct arrow grid[height * 2 + 3][width + 3]) {
 	int type = a.type;
 	// assume path is inner path
-	int reversed = (type == ARROW_LEFT);
-	// set arrow precedence order
-	int n0 = reversed ?  2 : 0;
-	int ni = reversed ? -1 : 1;
-	int nn = reversed ? -1 : 3;
+	int inner = (type == ARROW_LEFT);
 	// current arrow position
 	int xd = x;
 	int yd = y;
 
 	// arrow state
-	struct arrowState const* arrow = &states[type];
+	struct arrowState const* arrow = &states[type][inner];
+	// real coordinates
+	int xr = xd - 1 + arrow->rxd;
+	int yr = (yd - 1) / 2 + arrow->ryd;
+
+	struct arrow* nextArrow = &grid[yd][xd];
+	struct arrow* currentArrow;
+
+	do {
+		currentArrow = nextArrow;
+		type = ARROW_NONE;
+
+		// mark as seen
+		currentArrow->seen = 1;
+		currentArrow->inner = inner;
+
+		// search for adjacent arrows in precedence order
+		for (int n = 0; n < 4; n++) {
+			// adjacent arrow
+			struct arrowNext const* search = &arrow->next[n];
+
+			// TODO: Use directions
+
+			struct delta d = directions[currentArrow->type][search->dir];
+			int xn = xd + d.x;
+			int yn = yd + d.y;
+
+			//int xn = xd + search->dx;
+			//int yn = yd + search->dy;
+
+			/*if (d.x != search->dx || d.y != search->dy) {
+				printf("%d %d %d %d %d %d\n", xd, yd, d.x, d.y, search->dx, search->dy);
+			}*/
+
+			// ignore opposed arrows
+			if (search->inner != inner) {
+				continue;
+			}
+
+			nextArrow = &grid[yn][xn];
+
+			// follow adjacent arrow
+			if (nextArrow->type == search->arrow && !nextArrow->seen) {
+				xd = xn;
+				yd = yn;
+				type = search->arrow;
+				break;
+			}
+		}
+
+		// arrow state
+		arrow = &states[type][inner];
+		// real coordinates
+		xr = xd - 1 + arrow->rxd;
+		yr = (yd - 1) / 2 + arrow->ryd;
+	}
+	while (type);
+}
+
+/**
+ * Output paths.
+ *
+ * @param x First path arrow.
+ * @param y First path arrow.
+ * @param width Width of bitmap.
+ * @param height Height of bitmap.
+ * @param a First arrow.
+ * @param grid Grid to search for paths.
+ */
+static void makePath(int x, int y, int width, int height, struct arrow a, struct arrow grid[height * 2 + 3][width + 3]) {
+	int type = a.type;
+	int inner = a.inner;
+	// current arrow position
+	int xd = x;
+	int yd = y;
+
+	// arrow state
+	struct arrowState const* arrow = &states[type][inner];
 	// real coordinates
 	int xr = xd - 1 + arrow->rxd;
 	int yr = (yd - 1) / 2 + arrow->ryd;
@@ -145,28 +343,47 @@ static void searchPath(int x, int y, int width, int height, struct arrow a, stru
 	printf("M %d %d", xr, yr);
 
 	do {
+		struct arrow* currentArrow = &grid[yd][xd];
+
 		type = ARROW_NONE;
-		// clear arrow in grid
-		grid[yd][xd].type = ARROW_NONE;
+		// mark as followed
+		currentArrow->followed = 1;
 
 		// search for adjacent arrows in precedence order
-		for (int n = n0; n != nn; n += ni) {
+		for (int n = 0; n < 4; n++) {
 			// adjacent arrow
-			struct arrowNext const* next = &arrow->next[n];
-			int xn = xd + next->dx;
-			int yn = yd + next->dy;
+			struct arrowNext const* search = &arrow->next[n];
+			int xn = xd + search->dx;
+			int yn = yd + search->dy;
+			struct arrow const* nextArrow = &grid[yn][xn];
 
 			// follow adjacent arrow
-			if (grid[yn][xn].type == next->arrow) {
+			if (nextArrow->type == search->arrow && !nextArrow->followed) {
+				if (search->inner != inner) {
+					if (nextArrow->inner == currentArrow->inner) {
+						continue;
+					}
+					else {
+						continue;
+						//
+						// TODO:
+						// - Follow arrows
+						// - If opposed by arrow of different color
+						//    - If red, follow right path
+						//    - If green, follow left path
+						//
+					}
+				}
+
 				xd = xn;
 				yd = yn;
-				type = next->arrow;
+				type = search->arrow;
 				break;
 			}
 		}
 
 		// arrow state
-		arrow = &states[type];
+		arrow = &states[type][inner];
 		// real coordinates
 		xr = xd - 1 + arrow->rxd;
 		yr = (yd - 1) / 2 + arrow->ryd;
@@ -214,8 +431,19 @@ static void searchPaths(int width, int height, struct arrow grid[height * 2 + 3]
 		for (int x = 1; x < awidth - 1; x++) {
 			struct arrow a = grid[y][x];
 
-			if (a.type) {
-				searchPath(x, y, width, height, a, grid);
+			if (a.type && !a.seen) {
+				preparePath(x, y, width, height, a, grid);
+			}
+		}
+	}
+
+	// search right and left arrows in grid
+	for (int y = 1; y < aheight - 1; y += 2) {
+		for (int x = 1; x < awidth - 1; x++) {
+			struct arrow a = grid[y][x];
+
+			if (a.type && !a.followed) {
+				makePath(x, y, width, height, a, grid);
 			}
 		}
 	}
@@ -295,7 +523,15 @@ static void printGrid(int width, int height, char const map[height][width], stru
 		}
 
 		for (int x = 0; x < ewidth - (y % 2 != 0); x++) {
-			printf("%s", arrows[(int)grid[y][x].type]);
+			struct arrow a = grid[y][x];
+			int type = a.type;
+			char const* color = "";
+
+			if (type) {
+				color = colors[a.inner ? COLOR_RED : COLOR_GREEN];
+			}
+
+			printf("%s%s%s", color, arrows[(int)type], colors[COLOR_RESET]);
 
 			if (x > 0 && y >= 2 && x < ewidth - 2 && y < eheight - 2 && (y % 2) == 0) {
 				printf(" %c ", map[(y - 2) / 2][x - 1] ? '#' : ' ');
@@ -307,6 +543,12 @@ static void printGrid(int width, int height, char const map[height][width], stru
 
 		printf("\n");
 	}
+}
+
+int getDir(int a, int b) {
+	struct delta d = directions[a][b];
+
+	return d.x + d.y;
 }
 
 int main() {
