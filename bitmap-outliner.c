@@ -44,7 +44,7 @@ static arrow_next const states[][2][3] = {
  * @param map The bitmap.
  * @param grid Grid to fill with arrows.
  */
-static void setArrowsFromMap(int width, int height, uint8_t const map[height][width], grid_arrow grid[height * 2 + 3][width + 3]) {
+static void set_arrows_from_map(int width, int height, uint8_t const map[height][width], grid_arrow grid[height * 2 + 3][width + 3]) {
 	int x, y, p, t;
 
 	for (x = 0; x < width; x++) {
@@ -83,7 +83,7 @@ static void setArrowsFromMap(int width, int height, uint8_t const map[height][wi
  * @param rx Path X-coordinates.
  * @param ry Path Y-coordinates.
  */
-static void realCoords(arrow_type type, int32_t gx, int32_t gy, int32_t* rx, int32_t* ry) {
+static void real_coords(arrow_type type, int gx, int gy, int* rx, int* ry) {
 	/**
 	 * Defines coordinates.
 	 */
@@ -144,7 +144,7 @@ static int outliner_grow_segments(outliner* outliner) {
  * @param a First arrow.
  * @param grid Grid to search for paths.
  */
-static int makePath(outliner* outliner, int x, int y, int width, int height, grid_arrow grid[height * 2 + 3][width + 3]) {
+static int make_path(outliner* outliner, int x, int y, int width, int height, grid_arrow grid[height * 2 + 3][width + 3]) {
 	int xd = x;
 	int yd = y;
 	int xr, yr;
@@ -158,7 +158,7 @@ static int makePath(outliner* outliner, int x, int y, int width, int height, gri
 	path_segment* segments = outliner->segments;
 	path_segment* segment;
 
-	realCoords(type, xd, yd, &xr, &yr);
+	real_coords(type, xd, yd, &xr, &yr);
 
 	xp = xr;
 	yp = yr;
@@ -200,7 +200,7 @@ static int makePath(outliner* outliner, int x, int y, int width, int height, gri
 		if (type != prevtype && type) {
 			int dx, dy;
 
-			realCoords(type, xd, yd, &xr, &yr);
+			real_coords(type, xd, yd, &xr, &yr);
 
 			dx = xr - xp;
 			dy = yr - yp;
@@ -237,7 +237,7 @@ static int makePath(outliner* outliner, int x, int y, int width, int height, gri
  * @param height Height of bitmap.
  * @param grid Grid to search for paths.
  */
-static void searchPaths(outliner* outliner, int width, int height, grid_arrow grid[height * 2 + 3][width + 3]) {
+static void search_paths(outliner* outliner, int width, int height, grid_arrow grid[height * 2 + 3][width + 3]) {
 	int gridWidth = width + 3;
 	int gridHeight = height * 2 + 3;
 
@@ -247,7 +247,7 @@ static void searchPaths(outliner* outliner, int width, int height, grid_arrow gr
 			grid_arrow arrow = grid[y][x];
 
 			if (arrow.type && !arrow.seen) {
-				makePath(outliner, x, y, width, height, grid);
+				make_path(outliner, x, y, width, height, grid);
 			}
 		}
 	}
@@ -293,8 +293,8 @@ path_segment const* outliner_find_paths(outliner* outliner, int* out_length) {
 
 	outliner->segments_count = 0;
 
-	setArrowsFromMap(width, height, (void const*)data, (void*)grid);
-	searchPaths(outliner, width, height, (void*)grid);
+	set_arrows_from_map(width, height, (void const*)data, (void*)grid);
+	search_paths(outliner, width, height, (void*)grid);
 
 	*out_length = outliner->segments_count;
 
