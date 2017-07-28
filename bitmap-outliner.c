@@ -47,6 +47,19 @@ typedef struct {
 } path_segment;
 
 /**
+ * Defines outliner object.
+ */
+typedef struct {
+	int width;              ///< Bitmap width.
+	int height;             ///< Bitmap height.
+	uint8_t const* data;    ///< Bitmap data.
+	grid_arrow* arrow_grid; ///< Grid arrows.
+	path_segment* segments; ///< Path segment buffer.
+	int segments_count;     ///< Path segment buffer length.
+	int segments_cap;       ///< Path segment buffer capacity.
+} outliner;
+
+/**
  * The arrow states.
  */
 static arrow_next const states[][2][3] = {
@@ -68,16 +81,18 @@ static arrow_next const states[][2][3] = {
 	},
 };
 
-/**
- * Create arrow grid.
- *
- * @param width Width of bitmap.
- * @param height Height of bitmap.
- * @return Arrow grid.
- */
-static grid_arrow* createArrowGrid(int width, int height) {
-	return calloc((width + 1 + 3) * (height * 2 + 3), sizeof(grid_arrow));
-}
+#define MIN_SEGMENTS_COUNT 64
+
+// /**
+//  * Create arrow grid.
+//  *
+//  * @param width Width of bitmap.
+//  * @param height Height of bitmap.
+//  * @return Arrow grid.
+//  */
+// static grid_arrow* createArrowGrid(int width, int height) {
+// 	return calloc((width + 1 + 3) * (height * 2 + 3), sizeof(grid_arrow));
+// }
 
 /**
  * Fill arrow grid.
@@ -151,6 +166,85 @@ static void realCoords(arrow_type type, int32_t gx, int32_t gy, int32_t* rx, int
 	*ry = (gy - 1) / 2 + real->y;
 }
 
+
+/**
+ * Resize segments count.
+ *
+ * @param outliner The outline object.
+ * @return 0 on success.
+ */
+void outliner_free(outliner* outliner);
+
+/**
+ * Resize segments count.
+ *
+ * @param outliner The outline object.
+ * @return 0 on success.
+ */
+static int outliner_grow_segments(outliner* outliner) {
+	path_segment* segments = outliner->segments;
+	int segments_cap = outliner->segments_cap * 2 + 1;
+
+	if (segments_cap < MIN_SEGMENTS_COUNT) {
+		segments_cap = MIN_SEGMENTS_COUNT;
+	}
+
+	segments = realloc(segments, sizeof(*segments) * segments_cap);
+
+	if (!segments) {
+		return -1;
+	}
+
+	outliner->segments = segments;
+	outliner->segments_cap = segments_cap;
+
+	return 0;
+}
+
+/**
+ * Resize segments count.
+ *
+ * @param outliner The outline object.
+ * @return 0 on success.
+ */
+int outliner_init(outliner* object, int width, int height, uint8_t const* data) {
+	*object = (outliner) {
+		.width = width,
+		.height = height,
+		.data = data,
+	};
+
+	object->arrow_grid = calloc((width + 1 + 3) * (height * 2 + 3), sizeof(*object->arrow_grid));
+
+	if (!object->arrow_grid) {
+		goto error;
+	}
+
+
+	if (outliner_grow_segments(object) != 0) {
+		goto error;
+	}
+
+	return 0;
+
+	error: {
+		free(object);
+
+		return -1;
+	}
+}
+
+/**
+ * Resize segments count.
+ *
+ * @param outliner The outline object.
+ * @return 0 on success.
+ */
+void outliner_free(outliner* outliner) {
+	free(outliner->arrow_grid);
+	free(outliner->segments);
+}
+
 /**
  * Mark arrow as outer and inner.
  *
@@ -161,7 +255,7 @@ static void realCoords(arrow_type type, int32_t gx, int32_t gy, int32_t* rx, int
  * @param a First arrow.
  * @param grid Grid to search for paths.
  */
-static int makePath(path_segment* segments, int x, int y, int width, int height, grid_arrow grid[height * 2 + 3][width + 3]) {
+static int makePath(outliner* outliner, int x, int y, int width, int height, grid_arrow grid[height * 2 + 3][width + 3]) {
 	int xd = x;
 	int yd = y;
 	int xr, yr;
@@ -169,18 +263,18 @@ static int makePath(path_segment* segments, int x, int y, int width, int height,
 	grid_arrow* currentArrow = &grid[yd][xd];
 	grid_arrow* nextArrow = currentArrow;
 	arrow_type type = currentArrow->type;
-	// assume path is inner path
 	int inner = (type == ARROW_LEFT);
 	arrow_type prevtype = type;
+	int segments_count = outliner->segments_count;
+	path_segment* segments = outliner->segments;
 	path_segment* segment;
-	int count = 0;
 
 	realCoords(type, xd, yd, &xr, &yr);
 
 	xp = xr;
 	yp = yr;
 
-	segment = &segments[count++];
+	segment = &segments[segments_count++];
 	segment->type = ARROW_NONE;
 	segment->dx = xr;
 	segment->dy = yr;
@@ -216,12 +310,21 @@ static int makePath(path_segment* segments, int x, int y, int width, int height,
 		// and ignore last path segment
 		if (type != prevtype && type) {
 			int dx, dy;
+
 			realCoords(type, xd, yd, &xr, &yr);
 
 			dx = xr - xp;
 			dy = yr - yp;
 
-			segment = &segments[count++];
+			if (segments_count >= outliner->segments_cap) {
+				if (outliner_grow_segments(outliner) != 0) {
+					return 0;
+				}
+
+				segments = outliner->segments;
+			}
+
+			segment = &segments[segments_count++];
 			segment->type = prevtype;
 			segment->dx = dx;
 			segment->dy = dy;
@@ -233,7 +336,9 @@ static int makePath(path_segment* segments, int x, int y, int width, int height,
 	}
 	while (type);
 
-	return count;
+	outliner->segments_count = segments_count;
+
+	return segments_count;
 }
 
 /**
@@ -243,12 +348,9 @@ static int makePath(path_segment* segments, int x, int y, int width, int height,
  * @param height Height of bitmap.
  * @param grid Grid to search for paths.
  */
-static void searchPaths(int width, int height, grid_arrow grid[height * 2 + 3][width + 3]) {
+static void searchPaths(outliner* outliner, int width, int height, grid_arrow grid[height * 2 + 3][width + 3]) {
 	int gridWidth = width + 3;
 	int gridHeight = height * 2 + 3;
-
-	// TODO: Resize buffer
-	path_segment segments[1000];
 
 	// search right and left arrows in grid
 	for (int y = 1; y < gridHeight - 1; y += 2) {
@@ -256,32 +358,7 @@ static void searchPaths(int width, int height, grid_arrow grid[height * 2 + 3][w
 			grid_arrow arrow = grid[y][x];
 
 			if (arrow.type && !arrow.seen) {
-				int count = makePath(segments, x, y, width, height, grid);
-				path_segment* segment = &segments[0];
-
-				printf("M %d %d", segment->dx, segment->dy);
-
-				for (int i = 1; i < count; i++) {
-					segment = &segments[i];
-
-					switch (segment->type) {
-						case ARROW_RIGHT:
-						case ARROW_LEFT: {
-							printf("h%d", segment->dx);
-							break;
-						}
-						case ARROW_DOWN:
-						case ARROW_UP: {
-							printf("v%d", segment->dy);
-							break;
-						}
-						default: {
-							break;
-						}
-					}
-				}
-
-				printf("z");
+				makePath(outliner, x, y, width, height, grid);
 			}
 		}
 	}
@@ -363,7 +440,7 @@ static void printGrid(int width, int height, uint8_t const map[height][width], g
 #define HEIGHT 7
 
 
-char const map[] =
+uint8_t const map[] =
 	"\x01\x01\x00\x01\x00\x01\x01"
 	"\x00\x00\x01\x00\x01\x00\x00"
 	"\x01\x00\x01\x01\x01\x00\x01"
@@ -391,7 +468,9 @@ char const map[] =
 int main() {
 	int width = WIDTH;
 	int height = HEIGHT;
-	char* data = map;
+	uint8_t* data = (uint8_t*)map;
+
+	outliner outliner;
 
 	QRcode* code = QRcode_encodeString("https://pipeline2017.station.ch/main/index.php", 0, 0, QR_MODE_8, 0);
 
@@ -402,21 +481,58 @@ int main() {
 		code->data[i] &= 1;
 	}
 
-	data = code->data;
+	data = (uint8_t*)code->data;
 
-	grid_arrow* grid = createArrowGrid(width, height);
+	outliner_init(&outliner, width, height, data);
+
+	grid_arrow* grid = outliner.arrow_grid;
 
 	setArrowsFromMap(width, height, (void const*)data, (void*)grid);
+	searchPaths(&outliner, width, height, (void*)grid);
+
+
+	path_segment* segments = outliner.segments;
+	int count = outliner.segments_count;
 
 	printf("<svg viewBox=\"0 0 %d %d\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"", width, height);
-	searchPaths(width, height, (void*)grid);
+
+	for (int i = 0; i < count; i++) {
+		path_segment* segment = &segments[i];
+
+		switch (segment->type) {
+			case ARROW_NONE: {
+				if (i > 0) {
+					printf("z");
+				}
+
+				printf("M %d %d", segment->dx, segment->dy);
+				break;
+			}
+			case ARROW_RIGHT:
+			case ARROW_LEFT: {
+				printf("h%d", segment->dx);
+				break;
+			}
+			case ARROW_DOWN:
+			case ARROW_UP: {
+				printf("v%d", segment->dy);
+				break;
+			}
+			default: {
+				break;
+			}
+		}
+	}
+
 	printf("\"></path></svg>\n");
+
+
 
 	printf("\n");
 	printGrid(width, height, (void const*)data, (void const*)grid);
 	printf("\n");
 
-	free(grid);
+	outliner_free(&outliner);
 
 	return 0;
 }
