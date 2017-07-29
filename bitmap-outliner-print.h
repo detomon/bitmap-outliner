@@ -7,4 +7,4 @@
  *
  * @param The outliner object.
  */
-extern void outliner_print_grid(outliner const* outliner);
+extern void bmol_print_grid(mbol_outliner const* outliner);

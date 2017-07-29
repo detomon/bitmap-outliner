@@ -1,5 +1,7 @@
 #if 0
-clang -Wall -O2 -o /tmp/`basename $0` $0 bitmap-outliner.c bitmap-outliner-print.c -lqrencode && /tmp/`basename $0` $@; exit
+clang -Wall -O2 -o /tmp/`basename $0` $0 bitmap-outliner.c bitmap-outliner-print.c -lqrencode \
+	&& /tmp/`basename $0` $@
+exit
 #endif
 
 #include <stdint.h>
@@ -40,17 +42,14 @@ char const map[] =
 ;
 */
 
-static void print_svg(outliner const* outliner, path_segment const* segments, int count) {
-	int width = outliner->width;
-	int height = outliner->width;
-
+static void print_svg(int width, int height, bmol_path_seg const* segments, int count) {
 	printf("<svg viewBox=\"0 0 %d %d\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"", width, height);
 
 	for (int i = 0; i < count; i++) {
-		path_segment const* segment = &segments[i];
+		bmol_path_seg const* segment = &segments[i];
 
 		switch (segment->type) {
-			case ARROW_NONE: {
+			case BMOL_ARR_NONE: {
 				if (i > 0) {
 					printf("z");
 				}
@@ -58,13 +57,13 @@ static void print_svg(outliner const* outliner, path_segment const* segments, in
 				printf("M %d %d", segment->dx, segment->dy);
 				break;
 			}
-			case ARROW_RIGHT:
-			case ARROW_LEFT: {
+			case BMOL_ARR_RIGHT:
+			case BMOL_ARR_LEFT: {
 				printf("h%d", segment->dx);
 				break;
 			}
-			case ARROW_DOWN:
-			case ARROW_UP: {
+			case BMOL_ARR_DOWN:
+			case BMOL_ARR_UP: {
 				printf("v%d", segment->dy);
 				break;
 			}
@@ -82,7 +81,7 @@ int main() {
 	int height = HEIGHT;
 	uint8_t* data = (uint8_t*)map;
 
-	outliner outliner;
+	mbol_outliner outliner;
 
 	QRcode* code = QRcode_encodeString("https://monoxid.net", 0, 0, QR_MODE_8, 0);
 
@@ -95,18 +94,23 @@ int main() {
 
 	data = (uint8_t*)code->data;
 
-	outliner_init(&outliner, width, height, data);
+	bmol_init(&outliner, width, height, data);
 
 	int count;
-	path_segment const* segments = outliner_find_paths(&outliner, &count);
+	bmol_path_seg const* segments = bmol_outliner_find_paths(&outliner, &count);
 
-	print_svg(&outliner, segments, count);
+	if (!segments) {
+		fprintf(stderr, "Alloction error\n");
+		exit(1);
+	}
+
+	print_svg(width, height, segments, count);
 
 	printf("\n");
-	outliner_print_grid(&outliner);
+	bmol_print_grid(&outliner);
 	printf("\n");
 
-	outliner_free(&outliner);
+	bmol_free(&outliner);
 	QRcode_free(code);
 
 	return 0;

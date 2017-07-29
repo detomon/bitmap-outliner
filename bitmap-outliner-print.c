@@ -29,13 +29,13 @@ static char const* const colors[] = {
  * @param data The bitmap to print.
  * @param grid The arrow grid to print.
  */
-static void print_grid(int width, int height, uint8_t const data[height][width], grid_arrow const grid[height * 2 + 3][width + 3]) {
-	static const char* arrows[] = {
-		[ARROW_NONE]  = "∙",
-		[ARROW_RIGHT] = "→",
-		[ARROW_LEFT]  = "←",
-		[ARROW_DOWN]  = "↓",
-		[ARROW_UP]    = "↑",
+static void print_grid(int width, int height, uint8_t const data[height][width], bmol_arrow const grid[height * 2 + 3][width + 3]) {
+	static char const* arrows[] = {
+		[BMOL_ARR_NONE]  = "∙",
+		[BMOL_ARR_RIGHT] = "→",
+		[BMOL_ARR_LEFT]  = "←",
+		[BMOL_ARR_DOWN]  = "↓",
+		[BMOL_ARR_UP]    = "↑",
 	};
 
 	int gridWidth = width + 3;
@@ -47,7 +47,7 @@ static void print_grid(int width, int height, uint8_t const data[height][width],
 		}
 
 		for (int x = 0; x < gridWidth - (y % 2 != 0); x++) {
-			grid_arrow a = grid[y][x];
+			bmol_arrow a = grid[y][x];
 			int type = a.type;
 			char const* color = "";
 
@@ -69,6 +69,9 @@ static void print_grid(int width, int height, uint8_t const data[height][width],
 	}
 }
 
-void outliner_print_grid(outliner const* outliner) {
-	print_grid(outliner->width, outliner->height, (void const*)outliner->data, (void const*)outliner->arrow_grid);
+void bmol_print_grid(mbol_outliner const* outliner) {
+	int width = outliner->width;
+	int height = outliner->height;
+
+	print_grid(width, height, (uint8_t const (*)[width])outliner->data, (bmol_arrow (*)[width])outliner->arrow_grid);
 }
