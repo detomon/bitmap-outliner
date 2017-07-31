@@ -114,7 +114,7 @@ static void real_coords(bmol_arr_type type, int gx, int gy, int* rx, int* ry) {
  * @param outliner The outline object.
  * @return 0 on success.
  */
-static int bmol_outliner_grow_segments(mbol_outliner* outliner) {
+static int bmol_outliner_grow_segments(bmol_outliner* outliner) {
 	bmol_path_seg* segments = outliner->segments;
 	int segments_cap = outliner->segments_cap * 2 + 1;
 
@@ -134,7 +134,7 @@ static int bmol_outliner_grow_segments(mbol_outliner* outliner) {
 	return 0;
 }
 
-static int push_segment(mbol_outliner* outliner, bmol_arr_type type, int dx, int dy) {
+static int push_segment(bmol_outliner* outliner, bmol_arr_type type, int dx, int dy) {
 	bmol_path_seg* segment;
 	bmol_path_seg* segments = outliner->segments;
 
@@ -164,7 +164,7 @@ static int push_segment(mbol_outliner* outliner, bmol_arr_type type, int dx, int
  * @param a First arrow.
  * @param grid Grid to search for paths.
  */
-static int make_path(mbol_outliner* outliner, int x, int y, int width, int height, bmol_arrow grid[height * 2 + 3][width + 3]) {
+static int make_path(bmol_outliner* outliner, int x, int y, int width, int height, bmol_arrow grid[height * 2 + 3][width + 3]) {
 	int xd = x;
 	int yd = y;
 	int xr, yr;
@@ -242,7 +242,7 @@ static int make_path(mbol_outliner* outliner, int x, int y, int width, int heigh
  * @param height Height of bitmap.
  * @param grid Grid to search for paths.
  */
-static int search_paths(mbol_outliner* outliner, int width, int height, bmol_arrow grid[height * 2 + 3][width + 3]) {
+static int search_paths(bmol_outliner* outliner, int width, int height, bmol_arrow grid[height * 2 + 3][width + 3]) {
 	int gridWidth = width + 3;
 	int gridHeight = height * 2 + 3;
 
@@ -262,8 +262,8 @@ static int search_paths(mbol_outliner* outliner, int width, int height, bmol_arr
 	return 0;
 }
 
-int bmol_init(mbol_outliner* outliner, int width, int height, uint8_t const* data) {
-	*outliner = (mbol_outliner){
+int bmol_init(bmol_outliner* outliner, int width, int height, uint8_t const* data) {
+	*outliner = (bmol_outliner){
 		.width = width,
 		.height = height,
 		.data = data,
@@ -288,13 +288,13 @@ int bmol_init(mbol_outliner* outliner, int width, int height, uint8_t const* dat
 	}
 }
 
-void bmol_free(mbol_outliner* outliner) {
+void bmol_free(bmol_outliner* outliner) {
 	free(outliner->arrow_grid);
 	free(outliner->segments);
-	*outliner = (mbol_outliner){0};
+	*outliner = (bmol_outliner){0};
 }
 
-bmol_path_seg const* bmol_outliner_find_paths(mbol_outliner* outliner, int* out_length) {
+bmol_path_seg const* bmol_outliner_find_paths(bmol_outliner* outliner, int* out_length) {
 	int width = outliner->width;
 	int height = outliner->height;
 	bmol_arrow* grid = outliner->arrow_grid;

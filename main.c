@@ -81,7 +81,7 @@ int main() {
 	int height = HEIGHT;
 	uint8_t* data = (uint8_t*)map;
 
-	mbol_outliner outliner;
+	bmol_outliner outliner;
 
 	QRcode* code = QRcode_encodeString("https://monoxid.net", 0, 0, QR_MODE_8, 0);
 

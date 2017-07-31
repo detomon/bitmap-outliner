@@ -69,7 +69,7 @@ static void print_grid(int width, int height, uint8_t const data[height][width],
 	}
 }
 
-void bmol_print_grid(mbol_outliner const* outliner) {
+void bmol_print_grid(bmol_outliner const* outliner) {
 	int width = outliner->width;
 	int height = outliner->height;
 

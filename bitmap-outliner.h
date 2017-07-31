@@ -42,7 +42,7 @@ typedef struct {
 	bmol_path_seg* segments; ///< Path segment buffer.
 	int segments_count;      ///< Path segment buffer length.
 	int segments_cap;        ///< Path segment buffer capacity.
-} mbol_outliner;
+} bmol_outliner;
 
 /**
  * Initialize outliner object.
@@ -53,14 +53,14 @@ typedef struct {
  * @param data The bitmap data.
  * @return 0 on success.
  */
-extern int bmol_init(mbol_outliner* object, int width, int height, uint8_t const* data);
+extern int bmol_init(bmol_outliner* object, int width, int height, uint8_t const* data);
 
 /**
  * Free outliner object.
  *
  * @param outliner The outline object.
  */
-extern void bmol_free(mbol_outliner* outliner);
+extern void bmol_free(bmol_outliner* outliner);
 
 /**
  * Find paths in bitmap data.
@@ -69,4 +69,4 @@ extern void bmol_free(mbol_outliner* outliner);
  * @param out_length The number of path fragments.
  * @return The path fragments.
  */
-extern bmol_path_seg const* bmol_outliner_find_paths(mbol_outliner* outliner, int* out_length);
+extern bmol_path_seg const* bmol_outliner_find_paths(bmol_outliner* outliner, int* out_length);
