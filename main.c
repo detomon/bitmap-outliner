@@ -73,6 +73,8 @@ static void print_svg(int width, int height, bmol_path_seg const* segments, int 
 		}
 	}
 
+	printf("z");
+
 	printf("\"></path></svg>\n");
 }
 
