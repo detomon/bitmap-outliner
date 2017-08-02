@@ -155,6 +155,39 @@ static int push_segment(bmol_outliner* outliner, bmol_arr_type type, int dx, int
 }
 
 /**
+ * Search adjacent arrow.
+ *
+ * @param width Width of bitmap.
+ * @param height Height of bitmap.
+ * @param grid Arrow grid.
+ * @param type Current arrow type.
+ * @param inner Is inner path.
+ * @param xd Arrow X-coordinate.
+ * @param yd Arrow Y-coordinate.
+ */
+bmol_arrow* search_adjacent_arrow(int width, int height, bmol_arrow grid[height * 2 + 3][width + 3], bmol_arr_type type, int inner, int* xd, int* yd) {
+	arrow_next const* arrows = &states[type][inner][0];
+
+	// search for adjacent arrows in precedence order
+	for (int n = 0; n < 3; n++) {
+		arrow_next const* search = &arrows[n];
+		int xn = *xd + search->dx;
+		int yn = *yd + search->dy;
+		bmol_arrow* nextArrow = &grid[yn][xn];
+
+		// follow adjacent arrow
+		if (nextArrow->type == search->arrow && !nextArrow->seen) {
+			*xd = xn;
+			*yd = yn;
+
+			return nextArrow;
+		}
+	}
+
+	return NULL;
+}
+
+/**
  * Mark arrow as outer and inner.
  *
  * @param x First path arrow.
@@ -185,30 +218,16 @@ static int make_path(bmol_outliner* outliner, int x, int y, int width, int heigh
 	}
 
 	do {
-		arrow_next const* arrows = &states[type][inner][0];
-
 		currentArrow = nextArrow;
-		type = BMOL_ARR_NONE;
-
 		// mark as seen
 		currentArrow->seen = 1;
 		currentArrow->inner = inner;
 
-		// search for adjacent arrows in precedence order
-		for (int n = 0; n < 3; n++) {
-			arrow_next const* search = &arrows[n];
-			int xn = xd + search->dx;
-			int yn = yd + search->dy;
+		nextArrow = search_adjacent_arrow(width, height, grid, type, inner, &xd, &yd);
+		type = BMOL_ARR_NONE;
 
-			nextArrow = &grid[yn][xn];
-
-			// follow adjacent arrow
-			if (nextArrow->type == search->arrow && !nextArrow->seen) {
-				xd = xn;
-				yd = yn;
-				type = search->arrow;
-				break;
-			}
+		if (nextArrow) {
+			type = nextArrow->type;
 		}
 
 		// end path segment if arrow changes
@@ -267,9 +286,8 @@ int bmol_init(bmol_outliner* outliner, int width, int height, uint8_t const* dat
 		.width = width,
 		.height = height,
 		.data = data,
+		.arrow_grid = calloc((width + 3) * (height * 2 + 3), sizeof(*outliner->arrow_grid)),
 	};
-
-	outliner->arrow_grid = calloc((width + 3) * (height * 2 + 3), sizeof(*outliner->arrow_grid));
 
 	if (!outliner->arrow_grid) {
 		goto error;
