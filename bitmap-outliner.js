@@ -12,20 +12,40 @@
  */
 const states = {
 	[BMOL_ARR_RIGHT]: [
-		[{arrow: BMOL_ARR_LEFT,  dx: +1, dy:  0}, {arrow: BMOL_ARR_UP,   dx: +1, dy: -1}, {arrow: BMOL_ARR_RIGHT, dx: +1, dy:  0}, {arrow:BMOL_ARR_DOWN,  dx: +1, dy: +1}],
-		[{arrow: BMOL_ARR_DOWN,  dx: +1, dy: +1}, {arrow: BMOL_ARR_DOWN, dx: +1, dy: +1}, {arrow: BMOL_ARR_RIGHT, dx: +1, dy:  0}, {arrow:BMOL_ARR_UP,    dx: +1, dy: -1}],
+		[
+			{arrow: BMOL_ARR_LEFT,  dx: +1, dy:  0}, {arrow: BMOL_ARR_UP,   dx: +1, dy: -1},
+			{arrow: BMOL_ARR_RIGHT, dx: +1, dy:  0}, {arrow: BMOL_ARR_DOWN, dx: +1, dy: +1},
+		], [
+			{arrow: BMOL_ARR_DOWN,  dx: +1, dy: +1}, {arrow: BMOL_ARR_DOWN, dx: +1, dy: +1},
+			{arrow: BMOL_ARR_RIGHT, dx: +1, dy:  0}, {arrow: BMOL_ARR_UP,   dx: +1, dy: -1},
+		],
 	],
 	[BMOL_ARR_LEFT]: [
-		[{arrow: BMOL_ARR_RIGHT, dx: -1, dy:  0}, {arrow: BMOL_ARR_DOWN, dx:  0, dy: +1}, {arrow: BMOL_ARR_LEFT,  dx: -1, dy:  0}, {arrow:BMOL_ARR_UP,    dx:  0, dy: -1}],
-		[{arrow: BMOL_ARR_UP,    dx:  0, dy: -1}, {arrow: BMOL_ARR_UP,   dx:  0, dy: -1}, {arrow: BMOL_ARR_LEFT,  dx: -1, dy:  0}, {arrow:BMOL_ARR_DOWN,  dx:  0, dy: +1}],
+		[
+			{arrow: BMOL_ARR_RIGHT, dx: -1, dy:  0}, {arrow: BMOL_ARR_DOWN, dx:  0, dy: +1},
+			{arrow: BMOL_ARR_LEFT,  dx: -1, dy:  0}, {arrow: BMOL_ARR_UP,   dx:  0, dy: -1},
+		], [
+			{arrow: BMOL_ARR_UP,    dx:  0, dy: -1}, {arrow: BMOL_ARR_UP,   dx:  0, dy: -1},
+			{arrow: BMOL_ARR_LEFT,  dx: -1, dy:  0}, {arrow: BMOL_ARR_DOWN, dx:  0, dy: +1},
+		],
 	],
 	[BMOL_ARR_DOWN]: [
-		[{arrow: BMOL_ARR_UP,    dx:  0, dy: +2}, {arrow: BMOL_ARR_RIGHT,dx:  0, dy: +1}, {arrow: BMOL_ARR_DOWN,  dx:  0, dy: +2}, {arrow:BMOL_ARR_LEFT,  dx: -1, dy: +1}],
-		[{arrow: BMOL_ARR_LEFT,  dx: -1, dy: +1}, {arrow: BMOL_ARR_LEFT, dx: -1, dy: +1}, {arrow: BMOL_ARR_DOWN,  dx:  0, dy: +2}, {arrow:BMOL_ARR_RIGHT, dx:  0, dy: +1}],
+		[
+			{arrow: BMOL_ARR_UP,    dx:  0, dy: +2}, {arrow: BMOL_ARR_RIGHT, dx:  0, dy: +1},
+			{arrow: BMOL_ARR_DOWN,  dx:  0, dy: +2}, {arrow: BMOL_ARR_LEFT,  dx: -1, dy: +1},
+		], [
+			{arrow: BMOL_ARR_LEFT,  dx: -1, dy: +1}, {arrow: BMOL_ARR_LEFT,  dx: -1, dy: +1},
+			{arrow: BMOL_ARR_DOWN,  dx:  0, dy: +2}, {arrow: BMOL_ARR_RIGHT, dx:  0, dy: +1},
+		],
 	],
 	[BMOL_ARR_UP]: [
-		[{arrow: BMOL_ARR_DOWN,  dx:  0, dy: -2}, {arrow: BMOL_ARR_LEFT, dx: -1, dy: -1}, {arrow: BMOL_ARR_UP,    dx:  0, dy: -2}, {arrow:BMOL_ARR_RIGHT, dx:  0, dy: -1}],
-		[{arrow: BMOL_ARR_RIGHT, dx:  0, dy: -1}, {arrow: BMOL_ARR_RIGHT,dx:  0, dy: -1}, {arrow: BMOL_ARR_UP,    dx:  0, dy: -2}, {arrow:BMOL_ARR_LEFT,  dx: -1, dy: -1}],
+		[
+			{arrow: BMOL_ARR_DOWN,  dx:  0, dy: -2}, {arrow: BMOL_ARR_LEFT,  dx: -1, dy: -1},
+			{arrow: BMOL_ARR_UP,    dx:  0, dy: -2}, {arrow: BMOL_ARR_RIGHT, dx:  0, dy: -1},
+		], [
+			{arrow: BMOL_ARR_RIGHT, dx:  0, dy: -1}, {arrow: BMOL_ARR_RIGHT, dx:  0, dy: -1},
+			{arrow: BMOL_ARR_UP,    dx:  0, dy: -2}, {arrow: BMOL_ARR_LEFT,  dx: -1, dy: -1},
+		],
 	],
 };
 

@@ -19,20 +19,40 @@ typedef struct {
  */
 static arrow_next const states[][2][4] = {
 	[BMOL_ARR_RIGHT] = {
-		{{BMOL_ARR_LEFT,  +1,  0}, {BMOL_ARR_UP,   +1, -1}, {BMOL_ARR_RIGHT, +1,  0}, {BMOL_ARR_DOWN, +1, +1}},
-		{{BMOL_ARR_DOWN,  +1, +1}, {BMOL_ARR_DOWN, +1, +1}, {BMOL_ARR_RIGHT, +1,  0}, {BMOL_ARR_UP,   +1, -1}},
+		{
+			{BMOL_ARR_LEFT,  +1,  0}, {BMOL_ARR_UP,   +1, -1},
+			{BMOL_ARR_RIGHT, +1,  0}, {BMOL_ARR_DOWN, +1, +1},
+		}, {
+			{BMOL_ARR_DOWN,  +1, +1}, {BMOL_ARR_DOWN, +1, +1},
+			{BMOL_ARR_RIGHT, +1,  0}, {BMOL_ARR_UP,   +1, -1},
+		},
 	},
 	[BMOL_ARR_LEFT] = {
-		{{BMOL_ARR_RIGHT, -1,  0}, {BMOL_ARR_DOWN,  0, +1}, {BMOL_ARR_LEFT,  -1,  0}, {BMOL_ARR_UP,    0, -1}},
-		{{BMOL_ARR_UP,     0, -1}, {BMOL_ARR_UP,    0, -1}, {BMOL_ARR_LEFT,  -1,  0}, {BMOL_ARR_DOWN,  0, +1}},
+		{
+			{BMOL_ARR_RIGHT, -1,  0}, {BMOL_ARR_DOWN,  0, +1},
+			{BMOL_ARR_LEFT,  -1,  0}, {BMOL_ARR_UP,    0, -1},
+		}, {
+			{BMOL_ARR_UP,     0, -1}, {BMOL_ARR_UP,    0, -1},
+			{BMOL_ARR_LEFT,  -1,  0}, {BMOL_ARR_DOWN,  0, +1},
+		},
 	},
 	[BMOL_ARR_DOWN] = {
-		{{BMOL_ARR_UP,     0, +2}, {BMOL_ARR_RIGHT, 0, +1}, {BMOL_ARR_DOWN,   0, +2}, {BMOL_ARR_LEFT, -1, +1}},
-		{{BMOL_ARR_LEFT,  -1, +1}, {BMOL_ARR_LEFT, -1, +1}, {BMOL_ARR_DOWN,   0, +2}, {BMOL_ARR_RIGHT, 0, +1}},
+		{
+			{BMOL_ARR_UP,     0, +2}, {BMOL_ARR_RIGHT, 0, +1},
+			{BMOL_ARR_DOWN,   0, +2}, {BMOL_ARR_LEFT, -1, +1}
+		}, {
+			{BMOL_ARR_LEFT,  -1, +1}, {BMOL_ARR_LEFT, -1, +1},
+			{BMOL_ARR_DOWN,   0, +2}, {BMOL_ARR_RIGHT, 0, +1},
+		},
 	},
 	[BMOL_ARR_UP] = {
-		{{BMOL_ARR_DOWN,   0, -2}, {BMOL_ARR_LEFT, -1, -1}, {BMOL_ARR_UP,     0, -2}, {BMOL_ARR_RIGHT, 0, -1}},
-		{{BMOL_ARR_RIGHT,  0, -1}, {BMOL_ARR_RIGHT, 0, -1}, {BMOL_ARR_UP,     0, -2}, {BMOL_ARR_LEFT, -1, -1}},
+		{
+			{BMOL_ARR_DOWN,   0, -2}, {BMOL_ARR_LEFT, -1, -1},
+			{BMOL_ARR_UP,     0, -2}, {BMOL_ARR_RIGHT, 0, -1},
+		}, {
+			{BMOL_ARR_RIGHT,  0, -1}, {BMOL_ARR_RIGHT, 0, -1},
+			{BMOL_ARR_UP,     0, -2}, {BMOL_ARR_LEFT, -1, -1},
+		},
 	},
 };
 
