@@ -87,8 +87,6 @@ int main() {
 	int height = HEIGHT;
 	uint8_t* data = (uint8_t*)map;
 
-	bmol_outliner outliner;
-
 	QRcode* code = QRcode_encodeString("https://monoxid.net", 0, 0, QR_MODE_8, 0);
 
 	width = code->width;
@@ -110,10 +108,10 @@ int main() {
 
 	data = (uint8_t*)code->data;
 
-	bmol_init(&outliner, width, height, data);
+	bmol_outliner* outliner = bmol_alloc(width, height, data);
 
 	int count;
-	bmol_path_seg const* segments = bmol_outliner_find_paths(&outliner, &count);
+	bmol_path_seg const* segments = bmol_outliner_find_paths(outliner, &count);
 
 	if (!segments) {
 		fprintf(stderr, "Alloction error\n");
@@ -123,10 +121,10 @@ int main() {
 	print_svg(width, height, segments, count);
 
 	printf("\n");
-	bmol_print_grid(&outliner);
+	bmol_print_grid(outliner);
 	printf("\n");
 
-	bmol_free(&outliner);
+	bmol_free(outliner);
 	QRcode_free(code);
 
 	return 0;

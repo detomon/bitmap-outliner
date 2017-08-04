@@ -39,22 +39,21 @@ typedef struct {
 	int width;               ///< Bitmap width.
 	int height;              ///< Bitmap height.
 	uint8_t const* data;     ///< Bitmap data.
-	bmol_arrow* arrow_grid;  ///< Grid arrows.
 	bmol_path_seg* segments; ///< Path segment buffer.
 	int segments_count;      ///< Path segment buffer length.
 	int segments_cap;        ///< Path segment buffer capacity.
+	bmol_arrow arrow_grid[]; ///< Grid arrows.
 } bmol_outliner;
 
 /**
- * Initialize outliner object.
+ * Allocate outliner object.
  *
- * @param outliner The outline object.
  * @param width The bitmap width.
  * @param height The bitmap height.
  * @param data The bitmap data.
- * @return 0 on success.
+ * @return Outliner obect on success.
  */
-extern int bmol_init(bmol_outliner* object, int width, int height, uint8_t const* data);
+extern bmol_outliner* bmol_alloc(int width, int height, uint8_t const* data);
 
 /**
  * Free outliner object.

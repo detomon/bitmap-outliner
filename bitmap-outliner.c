@@ -390,35 +390,33 @@ static void set_arrows(int width, int height, uint8_t const map[height][width], 
 	}
 }
 
-int bmol_init(bmol_outliner* outliner, int width, int height, uint8_t const* data) {
-	*outliner = (bmol_outliner){
-		.width = width,
-		.height = height,
-		.data = data,
-		.arrow_grid = calloc((width + 3) * (height * 2 + 3), sizeof(*outliner->arrow_grid)),
-	};
+bmol_outliner* bmol_alloc(int width, int height, uint8_t const* data) {
+	size_t size;
+	bmol_outliner* outliner;
 
-	if (!outliner->arrow_grid) {
-		goto error;
+	size = (width + 3) * (height * 2 + 3) * sizeof(outliner->arrow_grid[0]);
+	outliner = calloc(1, sizeof(*outliner) + size);
+
+	if (!outliner) {
+		return NULL;
 	}
+
+	outliner->width = width;
+	outliner->height = height;
+	outliner->data = data;
 
 	if (bmol_outliner_grow_segments(outliner) != 0) {
-		goto error;
-	}
-
-	return 0;
-
-	error: {
 		free(outliner);
 
-		return -1;
+		return NULL;
 	}
+
+	return outliner;
 }
 
 void bmol_free(bmol_outliner* outliner) {
-	free(outliner->arrow_grid);
 	free(outliner->segments);
-	*outliner = (bmol_outliner){0};
+	free(outliner);
 }
 
 bmol_path_seg const* bmol_outliner_find_paths(bmol_outliner* outliner, int* out_length) {
