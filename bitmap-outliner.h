@@ -53,7 +53,7 @@ typedef struct {
  * @param data The bitmap data.
  * @return Outliner obect on success.
  */
-extern bmol_outliner* bmol_alloc(int width, int height, uint8_t const* data);
+extern bmol_outliner* bmol_alloc(uint8_t const* data, int width, int height);
 
 /**
  * Free outliner object.

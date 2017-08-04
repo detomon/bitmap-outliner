@@ -108,7 +108,7 @@ int main() {
 
 	data = (uint8_t*)code->data;
 
-	bmol_outliner* outliner = bmol_alloc(width, height, data);
+	bmol_outliner* outliner = bmol_alloc(data, width, height);
 
 	int count;
 	bmol_path_seg const* segments = bmol_outliner_find_paths(outliner, &count);

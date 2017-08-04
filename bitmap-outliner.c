@@ -390,7 +390,7 @@ static void set_arrows(int width, int height, uint8_t const map[height][width], 
 	}
 }
 
-bmol_outliner* bmol_alloc(int width, int height, uint8_t const* data) {
+bmol_outliner* bmol_alloc(uint8_t const* data, int width, int height) {
 	size_t size;
 	bmol_outliner* outliner;
 
