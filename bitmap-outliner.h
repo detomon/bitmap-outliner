@@ -17,9 +17,10 @@ typedef enum {
  * Defines arrow.
  */
 typedef struct {
-	uint8_t type:3;  ///< Arrow type.
-	uint8_t inner:1; ///< Associated path is inner path.
-	uint8_t seen:1;  ///< If already seen.
+	uint8_t type:3;     ///< Arrow type.
+	uint8_t inner:1;    ///< Associated path is inner path.
+	uint8_t seen:1;     ///< Has been seen.
+	uint8_t visited:1;  ///< Has been visited.
 } bmol_arrow;
 
 /**

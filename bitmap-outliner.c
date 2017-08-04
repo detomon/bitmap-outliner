@@ -12,67 +12,29 @@ typedef struct {
 	bmol_arr_type arrow; ///< Type of arrow.
 	int8_t dx;           ///< Relative to current position.
 	int8_t dy;           ///< Relative to current position.
-} arrow_next;
+} const arrow_next;
 
 /**
  * The arrow states.
  */
-static arrow_next const states[][2][3] = {
+static arrow_next const states[][2][4] = {
 	[BMOL_ARR_RIGHT] = {
-		{{BMOL_ARR_UP,   +1, -1}, {BMOL_ARR_RIGHT, +1,  0}, {BMOL_ARR_DOWN, +1, +1}},
-		{{BMOL_ARR_DOWN, +1, +1}, {BMOL_ARR_RIGHT, +1,  0}, {BMOL_ARR_UP,   +1, -1}},
+		{{BMOL_ARR_LEFT,  +1,  0}, {BMOL_ARR_UP,   +1, -1}, {BMOL_ARR_RIGHT, +1,  0}, {BMOL_ARR_DOWN, +1, +1}},
+		{{BMOL_ARR_DOWN,  +1, +1}, {BMOL_ARR_DOWN, +1, +1}, {BMOL_ARR_RIGHT, +1,  0}, {BMOL_ARR_UP,   +1, -1}},
 	},
 	[BMOL_ARR_LEFT] = {
-		{{BMOL_ARR_DOWN,  0, +1}, {BMOL_ARR_LEFT,  -1,  0}, {BMOL_ARR_UP,    0, -1}},
-		{{BMOL_ARR_UP,    0, -1}, {BMOL_ARR_LEFT,  -1,  0}, {BMOL_ARR_DOWN,  0, +1}},
+		{{BMOL_ARR_RIGHT, -1,  0}, {BMOL_ARR_DOWN,  0, +1}, {BMOL_ARR_LEFT,  -1,  0}, {BMOL_ARR_UP,    0, -1}},
+		{{BMOL_ARR_UP,     0, -1}, {BMOL_ARR_UP,    0, -1}, {BMOL_ARR_LEFT,  -1,  0}, {BMOL_ARR_DOWN,  0, +1}},
 	},
 	[BMOL_ARR_DOWN] = {
-		{{BMOL_ARR_RIGHT, 0, +1}, {BMOL_ARR_DOWN,   0, +2}, {BMOL_ARR_LEFT, -1, +1}},
-		{{BMOL_ARR_LEFT, -1, +1}, {BMOL_ARR_DOWN,   0, +2}, {BMOL_ARR_RIGHT, 0, +1}},
+		{{BMOL_ARR_UP,     0, +2}, {BMOL_ARR_RIGHT, 0, +1}, {BMOL_ARR_DOWN,   0, +2}, {BMOL_ARR_LEFT, -1, +1}},
+		{{BMOL_ARR_LEFT,  -1, +1}, {BMOL_ARR_LEFT, -1, +1}, {BMOL_ARR_DOWN,   0, +2}, {BMOL_ARR_RIGHT, 0, +1}},
 	},
 	[BMOL_ARR_UP] = {
-		{{BMOL_ARR_LEFT, -1, -1}, {BMOL_ARR_UP,     0, -2}, {BMOL_ARR_RIGHT, 0, -1}},
-		{{BMOL_ARR_RIGHT, 0, -1}, {BMOL_ARR_UP,     0, -2}, {BMOL_ARR_LEFT, -1, -1}},
+		{{BMOL_ARR_DOWN,   0, -2}, {BMOL_ARR_LEFT, -1, -1}, {BMOL_ARR_UP,     0, -2}, {BMOL_ARR_RIGHT, 0, -1}},
+		{{BMOL_ARR_RIGHT,  0, -1}, {BMOL_ARR_RIGHT, 0, -1}, {BMOL_ARR_UP,     0, -2}, {BMOL_ARR_LEFT, -1, -1}},
 	},
 };
-
-/**
- * Fill arrow grid.
- *
- * @param width Width of bitmap.
- * @param height Height of bitmap.
- * @param map The bitmap.
- * @param grid Grid to fill with arrows.
- */
-static void set_arrows(int width, int height, uint8_t const map[height][width], bmol_arrow grid[height * 2 + 3][width + 3]) {
-	int x, y, p, t;
-
-	for (x = 0; x < width; x++) {
-		for (y = 0, t = 0; y < height; y++) {
-			if ((p = map[y][x]) != t) {
-				grid[y * 2 + 1][x + 1].type = t ? BMOL_ARR_LEFT : BMOL_ARR_RIGHT;
-				t = p;
-			}
-		}
-
-		if (map[y - 1][x]) {
-			grid[y * 2 + 1][x + 1].type = BMOL_ARR_LEFT;
-		}
-	}
-
-	for (y = 0; y < height; y++) {
-		for (x = 0, t = 0; x < width; x++) {
-			if ((p = map[y][x]) != t) {
-				grid[y * 2 + 2][x + 1].type = t ? BMOL_ARR_DOWN : BMOL_ARR_UP;
-				t = p;
-			}
-		}
-
-		if (map[y][x - 1]) {
-			grid[y * 2 + 2][x + 1].type = BMOL_ARR_DOWN;
-		}
-	}
-}
 
 /**
  * Convert arrow grid coordinates to path coordinates.
@@ -134,6 +96,15 @@ static int bmol_outliner_grow_segments(bmol_outliner* outliner) {
 	return 0;
 }
 
+/**
+ * Add segment to segment list.
+ *
+ * @param outliner The outline object.
+ * @param type The arrow type.
+ * @param dx Path segment X-coordinate.
+ * @param dy Path segment Y-coordinate.
+ * @return 0 on success.
+ */
 static int push_segment(bmol_outliner* outliner, bmol_arr_type type, int dx, int dy) {
 	bmol_path_seg* segment;
 	bmol_path_seg* segments = outliner->segments;
@@ -165,18 +136,39 @@ static int push_segment(bmol_outliner* outliner, bmol_arr_type type, int dx, int
  * @param xd Arrow X-coordinate.
  * @param yd Arrow Y-coordinate.
  */
-bmol_arrow* search_adjacent_arrow(int width, int height, bmol_arrow grid[height * 2 + 3][width + 3], bmol_arr_type type, int inner, int* xd, int* yd) {
-	arrow_next const* arrows = &states[type][inner][0];
+static bmol_arrow* search_adjacent_arrow(int width, int height, bmol_arrow grid[height * 2 + 3][width + 3], bmol_arr_type type, int inner, int* xd, int* yd) {
+	arrow_next* arrows = &states[type][inner][0];
 
 	// search for adjacent arrows in precedence order
-	for (int n = 0; n < 3; n++) {
-		arrow_next const* search = &arrows[n];
+	for (int n = 0; n < 4; n++) {
+		arrow_next* search = &arrows[n];
 		int xn = *xd + search->dx;
 		int yn = *yd + search->dy;
 		bmol_arrow* nextArrow = &grid[yn][xn];
 
 		// follow adjacent arrow
 		if (nextArrow->type == search->arrow && !nextArrow->seen) {
+			// is opposite arrow
+			if (n == 0) {
+				if (!inner && nextArrow->inner) {
+					*xd = xn;
+					*yd = yn;
+
+					nextArrow->seen = 0; // do not mark opposite arrow as seen
+					type = nextArrow->type;
+
+					// search next inner arrow relative to opposite arrow
+					return search_adjacent_arrow(width, height, grid, type, 1, xd, yd);
+				}
+				else {
+					continue;
+				}
+			}
+			// ignore arrows not in path type
+			else if (nextArrow->inner != inner) {
+				continue;
+			}
+
 			*xd = xn;
 			*yd = yn;
 
@@ -184,17 +176,21 @@ bmol_arrow* search_adjacent_arrow(int width, int height, bmol_arrow grid[height 
 		}
 	}
 
+	// switch to outer path if no more inner path arrows found
+	if (inner) {
+		return search_adjacent_arrow(width, height, grid, type, 0, xd, yd);
+	}
+
 	return NULL;
 }
 
 /**
- * Mark arrow as outer and inner.
+ * Make path segments.
  *
  * @param x First path arrow.
  * @param y First path arrow.
  * @param width Width of bitmap.
  * @param height Height of bitmap.
- * @param a First arrow.
  * @param grid Grid to search for paths.
  */
 static int make_path(bmol_outliner* outliner, int x, int y, int width, int height, bmol_arrow grid[height * 2 + 3][width + 3]) {
@@ -213,21 +209,21 @@ static int make_path(bmol_outliner* outliner, int x, int y, int width, int heigh
 	xp = xr;
 	yp = yr;
 
+	// begin path
 	if (push_segment(outliner, BMOL_ARR_NONE, xr, yr) != 0) {
 		return -1;
 	}
 
 	do {
 		currentArrow = nextArrow;
-		// mark as seen
-		currentArrow->seen = 1;
-		currentArrow->inner = inner;
+		currentArrow->seen = 1; // mark as seen
 
 		nextArrow = search_adjacent_arrow(width, height, grid, type, inner, &xd, &yd);
 		type = BMOL_ARR_NONE;
 
 		if (nextArrow) {
 			type = nextArrow->type;
+			inner = nextArrow->inner; // switch arrow type
 		}
 
 		// end path segment if arrow changes
@@ -242,6 +238,7 @@ static int make_path(bmol_outliner* outliner, int x, int y, int width, int heigh
 			xp = xr;
 			yp = yr;
 
+			// add path segment
 			if (push_segment(outliner, prevtype, dx, dy) < 0) {
 				return-1;
 			}
@@ -255,6 +252,49 @@ static int make_path(bmol_outliner* outliner, int x, int y, int width, int heigh
 }
 
 /**
+ * Mark arrow as outer and inner.
+ *
+ * @param x First path arrow.
+ * @param y First path arrow.
+ * @param width Width of bitmap.
+ * @param height Height of bitmap.
+ * @param grid Grid to search for paths.
+ */
+static void set_path_type(bmol_outliner* outliner, int x, int y, int width, int height, bmol_arrow grid[height * 2 + 3][width + 3]) {
+	bmol_arrow* arrow = &grid[y][x];
+	bmol_arr_type type = arrow->type;
+	int inner = (type == BMOL_ARR_LEFT);
+
+	do {
+		arrow_next* arrows = &states[type][inner][1]; // ignore opponent arrow
+
+		// mark as visited
+		arrow->visited = 1;
+		arrow->inner = inner;
+
+		type = BMOL_ARR_NONE;
+
+		// search for adjacent arrows in precedence order
+		for (int n = 0; n < 3; n++) {
+			arrow_next* search = &arrows[n];
+			int xn = x + search->dx;
+			int yn = y + search->dy;
+			bmol_arrow* nextArrow = &grid[yn][xn];
+
+			// follow adjacent arrow
+			if (nextArrow->type == search->arrow && !nextArrow->visited) {
+				x = xn;
+				y = yn;
+				type = nextArrow->type;
+				arrow = nextArrow;
+				break;
+			}
+		}
+	}
+	while (type);
+}
+
+/**
  * Search all paths in arrow grid.
  *
  * @param width Width of bitmap.
@@ -264,6 +304,17 @@ static int make_path(bmol_outliner* outliner, int x, int y, int width, int heigh
 static int search_paths(bmol_outliner* outliner, int width, int height, bmol_arrow grid[height * 2 + 3][width + 3]) {
 	int gridWidth = width + 3;
 	int gridHeight = height * 2 + 3;
+
+	// set arrow types
+	for (int y = 1; y < gridHeight - 1; y += 2) {
+		for (int x = 1; x < gridWidth - 1; x++) {
+			bmol_arrow arrow = grid[y][x];
+
+			if (arrow.type && !arrow.visited) {
+				set_path_type(outliner, x, y, width, height, grid);
+			}
+		}
+	}
 
 	// search right and left arrows in grid
 	for (int y = 1; y < gridHeight - 1; y += 2) {
@@ -279,6 +330,44 @@ static int search_paths(bmol_outliner* outliner, int width, int height, bmol_arr
 	}
 
 	return 0;
+}
+
+/**
+ * Fill arrow grid.
+ *
+ * @param width Width of bitmap.
+ * @param height Height of bitmap.
+ * @param map The bitmap.
+ * @param grid Grid to fill with arrows.
+ */
+static void set_arrows(int width, int height, uint8_t const map[height][width], bmol_arrow grid[height * 2 + 3][width + 3]) {
+	int x, y, p, t;
+
+	for (x = 0; x < width; x++) {
+		for (y = 0, t = 0; y < height; y++) {
+			if ((p = map[y][x]) != t) {
+				grid[y * 2 + 1][x + 1].type = t ? BMOL_ARR_LEFT : BMOL_ARR_RIGHT;
+				t = p;
+			}
+		}
+
+		if (map[y - 1][x]) {
+			grid[y * 2 + 1][x + 1].type = BMOL_ARR_LEFT;
+		}
+	}
+
+	for (y = 0; y < height; y++) {
+		for (x = 0, t = 0; x < width; x++) {
+			if ((p = map[y][x]) != t) {
+				grid[y * 2 + 2][x + 1].type = t ? BMOL_ARR_DOWN : BMOL_ARR_UP;
+				t = p;
+			}
+		}
+
+		if (map[y][x - 1]) {
+			grid[y * 2 + 2][x + 1].type = BMOL_ARR_DOWN;
+		}
+	}
 }
 
 int bmol_init(bmol_outliner* outliner, int width, int height, uint8_t const* data) {
