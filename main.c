@@ -9,7 +9,7 @@ exit
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <qrencode.h>
+#include "qrencode.h"
 #include "bitmap-outliner.h"
 #include "bitmap-outliner-print.h"
 
@@ -17,29 +17,33 @@ exit
 #define HEIGHT 7
 
 
-uint8_t const map[] =
-	"\x01\x01\x00\x01\x00\x01\x01"
-	"\x00\x00\x01\x00\x01\x00\x00"
-	"\x01\x00\x01\x01\x01\x00\x01"
-	"\x01\x01\x00\x00\x00\x01\x01"
-	"\x01\x01\x00\x00\x00\x01\x01"
-	"\x01\x01\x00\x01\x00\x01\x01"
-	"\x01\x01\x00\x01\x00\x01\x01"
-;
+uint8_t const map[] = {
+	1, 1, 0, 1 ,0, 1, 1,
+	0, 0, 1, 0 ,1, 0, 0,
+	1, 0, 1, 1 ,1, 0, 1,
+	1, 1, 0, 0 ,0, 1, 1,
+	1, 1, 0, 0 ,0, 1, 1,
+	1, 1, 0, 1 ,0, 1, 1,
+	1, 1, 0, 1 ,0, 1, 1,
+};
+
 
 /*
-char const map[] =
-	"\x01\x00\x01\x00\x01"
-	"\x00\x01\x00\x01\x00"
-	"\x01\x00\x01\x00\x01"
-	"\x00\x01\x00\x01\x00"
-	"\x01\x00\x01\x00\x01"
-	"\x01\x00\x01\x00\x01"
-	"\x00\x01\x00\x01\x00"
-	"\x01\x00\x01\x00\x01"
-	"\x00\x01\x00\x01\x00"
-	"\x01\x00\x01\x00\x01"
-;
+uint8_t const map[] = {
+	0, 1, 1, 1, 1,
+	1, 0, 1, 1, 1,
+	1, 1, 0, 1, 1,
+	1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1,
+};
+*/
+
+/*
+char const map[] = {
+	0, 1, 0,
+	1, 0, 1,
+	0, 1, 0,
+};
 */
 
 static void print_svg(int width, int height, bmol_path_seg const* segments, int count) {
@@ -90,9 +94,19 @@ int main() {
 	width = code->width;
 	height = code->width;
 
+	//printf("width: %d\nheight: %d\n", width, height);
+
 	for (int i = 0; i < width * height; i++) {
 		code->data[i] &= 1;
+
+		/*if (i && i % width == 0) {
+			printf("\n");
+		}
+
+		printf("%d, ", code->data[i]);*/
 	}
+
+	//printf("\n\n");
 
 	data = (uint8_t*)code->data;
 
