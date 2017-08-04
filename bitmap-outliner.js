@@ -12,20 +12,20 @@
  */
 const states = {
 	[BMOL_ARR_RIGHT]: [
-		[{arrow: BMOL_ARR_UP,   dx: +1, dy: -1}, {arrow: BMOL_ARR_RIGHT, dx: +1, dy:  0}, {arrow:BMOL_ARR_DOWN,  dx: +1, dy: +1}],
-		[{arrow: BMOL_ARR_DOWN, dx: +1, dy: +1}, {arrow: BMOL_ARR_RIGHT, dx: +1, dy:  0}, {arrow:BMOL_ARR_UP,    dx: +1, dy: -1}],
+		[{arrow: BMOL_ARR_LEFT,  dx: +1, dy:  0}, {arrow: BMOL_ARR_UP,   dx: +1, dy: -1}, {arrow: BMOL_ARR_RIGHT, dx: +1, dy:  0}, {arrow:BMOL_ARR_DOWN,  dx: +1, dy: +1}],
+		[{arrow: BMOL_ARR_DOWN,  dx: +1, dy: +1}, {arrow: BMOL_ARR_DOWN, dx: +1, dy: +1}, {arrow: BMOL_ARR_RIGHT, dx: +1, dy:  0}, {arrow:BMOL_ARR_UP,    dx: +1, dy: -1}],
 	],
 	[BMOL_ARR_LEFT]: [
-		[{arrow: BMOL_ARR_DOWN, dx:  0, dy: +1}, {arrow: BMOL_ARR_LEFT,  dx: -1, dy:  0}, {arrow:BMOL_ARR_UP,    dx:  0, dy: -1}],
-		[{arrow: BMOL_ARR_UP,   dx:  0, dy: -1}, {arrow: BMOL_ARR_LEFT,  dx: -1, dy:  0}, {arrow:BMOL_ARR_DOWN,  dx:  0, dy: +1}],
+		[{arrow: BMOL_ARR_RIGHT, dx: -1, dy:  0}, {arrow: BMOL_ARR_DOWN, dx:  0, dy: +1}, {arrow: BMOL_ARR_LEFT,  dx: -1, dy:  0}, {arrow:BMOL_ARR_UP,    dx:  0, dy: -1}],
+		[{arrow: BMOL_ARR_UP,    dx:  0, dy: -1}, {arrow: BMOL_ARR_UP,   dx:  0, dy: -1}, {arrow: BMOL_ARR_LEFT,  dx: -1, dy:  0}, {arrow:BMOL_ARR_DOWN,  dx:  0, dy: +1}],
 	],
 	[BMOL_ARR_DOWN]: [
-		[{arrow: BMOL_ARR_RIGHT,dx:  0, dy: +1}, {arrow: BMOL_ARR_DOWN,  dx:  0, dy: +2}, {arrow:BMOL_ARR_LEFT,  dx: -1, dy: +1}],
-		[{arrow: BMOL_ARR_LEFT, dx: -1, dy: +1}, {arrow: BMOL_ARR_DOWN,  dx:  0, dy: +2}, {arrow:BMOL_ARR_RIGHT, dx:  0, dy: +1}],
+		[{arrow: BMOL_ARR_UP,    dx:  0, dy: +2}, {arrow: BMOL_ARR_RIGHT,dx:  0, dy: +1}, {arrow: BMOL_ARR_DOWN,  dx:  0, dy: +2}, {arrow:BMOL_ARR_LEFT,  dx: -1, dy: +1}],
+		[{arrow: BMOL_ARR_LEFT,  dx: -1, dy: +1}, {arrow: BMOL_ARR_LEFT, dx: -1, dy: +1}, {arrow: BMOL_ARR_DOWN,  dx:  0, dy: +2}, {arrow:BMOL_ARR_RIGHT, dx:  0, dy: +1}],
 	],
 	[BMOL_ARR_UP]: [
-		[{arrow: BMOL_ARR_LEFT, dx: -1, dy: -1}, {arrow: BMOL_ARR_UP,    dx:  0, dy: -2}, {arrow:BMOL_ARR_RIGHT, dx:  0, dy: -1}],
-		[{arrow: BMOL_ARR_RIGHT,dx:  0, dy: -1}, {arrow: BMOL_ARR_UP,    dx:  0, dy: -2}, {arrow:BMOL_ARR_LEFT,  dx: -1, dy: -1}],
+		[{arrow: BMOL_ARR_DOWN,  dx:  0, dy: -2}, {arrow: BMOL_ARR_LEFT, dx: -1, dy: -1}, {arrow: BMOL_ARR_UP,    dx:  0, dy: -2}, {arrow:BMOL_ARR_RIGHT, dx:  0, dy: -1}],
+		[{arrow: BMOL_ARR_RIGHT, dx:  0, dy: -1}, {arrow: BMOL_ARR_RIGHT,dx:  0, dy: -1}, {arrow: BMOL_ARR_UP,    dx:  0, dy: -2}, {arrow:BMOL_ARR_LEFT,  dx: -1, dy: -1}],
 	],
 };
 
@@ -33,9 +33,10 @@ const states = {
  * Simulate bitfield struct.
  *
  * typedef struct {
- *     uint8_t type:3;  ///< Arrow type.
- *     uint8_t inner:1; ///< Associated path is inner path.
- *     uint8_t seen:1;  ///< If already seen.
+ *     uint8_t type:3;    ///< Arrow type.
+ *     uint8_t inner:1;   ///< Associated path is inner path.
+ *     uint8_t seen:1;    ///< Has been seen.
+ *     uint8_t visited:1; ///< Has been visited.
  * } bmol_arrow;
  */
 class ArrowBitfield {
@@ -78,6 +79,14 @@ class ArrowBitfield {
 
 	set seen(newValue) {
 		this.value = (this.value & ~0x10) | ((newValue & 0x1) << 4);
+	}
+
+	get visited() {
+		return (this.value & 0x20) >> 5;
+	}
+
+	set visited(newValue) {
+		this.value = (this.value & ~0x20) | ((newValue & 0x1) << 5);
 	}
 
 	/**
@@ -204,9 +213,6 @@ class BitmapOutliner {
 	/**
 	 * Search adjacent arrow.
 	 *
-	 * @param width Width of bitmap.
-	 * @param height Height of bitmap.
-	 * @param grid Arrow grid.
 	 * @param type Current arrow type.
 	 * @param inner Is inner path.
 	 * @param xd Arrow X-coordinate.
@@ -218,7 +224,7 @@ class BitmapOutliner {
 		let bitfield = this.gridAccessor;
 
 		// search for adjacent arrows in precedence order
-		for (var n = 0; n < 3; n++) {
+		for (var n = 0; n < 4; n++) {
 			let search = arrows[n];
 			let xn = xd + search.dx;
 			let yn = yd + search.dy;
@@ -226,6 +232,27 @@ class BitmapOutliner {
 
 			// follow adjacent arrow
 			if (nextArrow.type === search.arrow && !nextArrow.seen) {
+				// is opposite arrow
+				if (n == 0) {
+					if (!inner && nextArrow.inner) {
+						xd = xn;
+						yd = yn;
+
+						nextArrow.seen = 0; // do not mark opposite arrow as seen
+						type = nextArrow.type;
+
+						// search next inner arrow relative to opposite arrow
+						return this.searchAdjacentArrow(type, 1, xd, yd);
+					}
+					else {
+						continue;
+					}
+				}
+				// ignore arrows not in path type
+				else if (nextArrow.inner != inner) {
+					continue;
+				}
+
 				xd = xn;
 				yd = yn;
 
@@ -233,11 +260,16 @@ class BitmapOutliner {
 			}
 		}
 
+		// switch to outer path if no more inner path arrows found
+		if (inner) {
+			return this.searchAdjacentArrow(type, 0, xd, yd);
+		}
+
 		return null;
 	}
 
 	/**
-	 * Mark arrow as outer and inner.
+	 * Make path segments.
 	 *
 	 * @param x First path arrow.
 	 * @param y First path arrow.
@@ -262,13 +294,8 @@ class BitmapOutliner {
 		this.pushSegment(BMOL_ARR_NONE, xr, yr);
 
 		do {
-			let arrows = states[type][inner];
-
 			currentArrow = nextArrow;
-
-			// mark as seen
-			currentArrow.seen = 1;
-			currentArrow.inner = inner;
+			currentArrow.seen = 1; // mark as seen
 
 			var next = this.searchAdjacentArrow(type, inner, xd, yd);
 			type = BMOL_ARR_NONE;
@@ -276,6 +303,7 @@ class BitmapOutliner {
 			if (next) {
 				var {nextArrow, xd, yd} = next;
 				type = nextArrow.type;
+				inner = nextArrow.inner; // switch arrow type
 			}
 
 			// end path segment if arrow changes
@@ -297,6 +325,48 @@ class BitmapOutliner {
 	}
 
 	/**
+	 * Mark arrow as outer and inner.
+	 *
+	 * @param x First path arrow.
+	 * @param y First path arrow.
+	 */
+	setPathType(x, y) {
+		let grid = this.grid;
+		let bitfield = this.gridAccessor;
+		let arrow = bitfield.at(grid[y], x);
+		let type = arrow.type;
+		let inner = +(type === BMOL_ARR_LEFT);
+
+		do {
+			let arrows = states[type][inner];
+
+			// mark as visited
+			arrow.visited = 1;
+			arrow.inner = inner;
+
+			type = BMOL_ARR_NONE;
+
+			// search for adjacent arrows in precedence order
+			for (var n = 1; n < 4; n++) {
+				let search = arrows[n];
+				let xn = x + search.dx;
+				let yn = y + search.dy;
+				let nextArrow = bitfield.at(grid[yn], xn);
+
+				// follow adjacent arrow
+				if (nextArrow.type === search.arrow && !nextArrow.visited) {
+					x = xn;
+					y = yn;
+					type = nextArrow.type;
+					arrow = nextArrow;
+					break;
+				}
+			}
+		}
+		while (type);
+	}
+
+	/**
 	 * Search all paths in arrow grid.
 	 */
 	searchPaths() {
@@ -304,6 +374,17 @@ class BitmapOutliner {
 		let gridHeight = this.height * 2 + 3;
 		let grid = this.grid;
 		let bitfield = this.gridAccessor;
+
+		// set arrow types
+		for (var y = 1; y < gridHeight - 1; y += 2) {
+			for (var x = 1; x < gridWidth - 1; x++) {
+				var arrow = bitfield.at(grid[y], x);
+
+				if (arrow.type && !arrow.visited) {
+					this.setPathType(x, y);
+				}
+			}
+		}
 
 		// search right and left arrows in grid
 		for (var y = 1; y < gridHeight - 1; y += 2) {
@@ -358,6 +439,7 @@ class BitmapOutliner {
 
 		return path;
 	}
+
 }
 
 // -----------------------------------------------------------------------------
