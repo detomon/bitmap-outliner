@@ -1,5 +1,5 @@
 #if 0
-clang -Wall -O2 -o /tmp/`basename $0` $0 bitmap-outliner.c bitmap-outliner-print.c -lqrencode \
+clang -Wall -O2 -o /tmp/`basename $0` $0 -I. bitmap-outliner.c dev/bitmap-outliner-print.c -lqrencode \
 	&& /tmp/`basename $0` $@
 exit
 #endif
@@ -11,7 +11,7 @@ exit
 #include <unistd.h>
 #include "qrencode.h"
 #include "bitmap-outliner.h"
-#include "bitmap-outliner-print.h"
+#include "dev/bitmap-outliner-print.h"
 
 #define WIDTH 7
 #define HEIGHT 7
