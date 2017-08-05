@@ -524,6 +524,6 @@ const data = new Uint8Array([
 var outliner = new BitmapOutliner(width, height, data);
 
 let path = outliner.svgPath();
-let svg = `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg"><path d="${path}"></path></svg>`;
+let svg = `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg"><path d="${path}" fill="#000" fill-rule="evenodd"/></svg>`;
 
 console.log(svg);

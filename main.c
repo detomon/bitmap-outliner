@@ -79,7 +79,7 @@ static void print_svg(int width, int height, bmol_path_seg const* segments, int 
 
 	printf("z");
 
-	printf("\"></path></svg>\n");
+	printf("\" fill=\"#000\" fill-rule=\"evenodd\"/></svg>\n");
 }
 
 int main() {
