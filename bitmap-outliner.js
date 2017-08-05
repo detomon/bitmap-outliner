@@ -300,11 +300,11 @@ class BitmapOutliner {
 		var xp, yp;
 		let grid = this.grid;
 		let bitfield = this.gridAccessor;
-		var currentArrow = bitfield.at(grid[yd], xd);
-		var nextArrow = currentArrow;
-		var type = currentArrow.type;
+		var arrow = bitfield.at(grid[yd], xd);
+		var nextArrow = arrow;
+		var type = arrow.type;
 		let inner = +(type === BMOL_ARR_LEFT);
-		var prevtype = type;
+		var prevType = type;
 
 		var {xr, yr} = this.realCoords(type, xd, yd);
 
@@ -314,8 +314,8 @@ class BitmapOutliner {
 		this.pushSegment(BMOL_ARR_NONE, xr, yr);
 
 		do {
-			currentArrow = nextArrow;
-			currentArrow.seen = 1; // mark as seen
+			arrow = nextArrow;
+			arrow.seen = 1; // mark as seen
 
 			var next = this.searchAdjacentArrow(type, inner, xd, yd);
 			type = BMOL_ARR_NONE;
@@ -328,7 +328,7 @@ class BitmapOutliner {
 
 			// end path segment if arrow changes
 			// and ignore last path segment
-			if (type != prevtype && type) {
+			if (type != prevType && type) {
 				let {xr, yr} = this.realCoords(type, xd, yd);
 				let dx = xr - xp;
 				let dy = yr - yp;
@@ -336,9 +336,9 @@ class BitmapOutliner {
 				xp = xr;
 				yp = yr;
 
-				this.pushSegment(prevtype, dx, dy);
+				this.pushSegment(prevType, dx, dy);
 
-				prevtype = type;
+				prevType = type;
 			}
 		}
 		while (type);

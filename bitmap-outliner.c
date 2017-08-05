@@ -218,11 +218,11 @@ static int make_path(bmol_outliner* outliner, int x, int y, int width, int heigh
 	int yd = y;
 	int xr, yr;
 	int xp, yp;
-	bmol_arrow* currentArrow = &grid[yd][xd];
-	bmol_arrow* nextArrow = currentArrow;
-	bmol_arr_type type = currentArrow->type;
+	bmol_arrow* arrow = &grid[yd][xd];
+	bmol_arrow* nextArrow = arrow;
+	bmol_arr_type type = arrow->type;
 	int inner = (type == BMOL_ARR_LEFT);
-	bmol_arr_type prevtype = type;
+	bmol_arr_type prevType = type;
 
 	real_coords(type, xd, yd, &xr, &yr);
 
@@ -235,8 +235,8 @@ static int make_path(bmol_outliner* outliner, int x, int y, int width, int heigh
 	}
 
 	do {
-		currentArrow = nextArrow;
-		currentArrow->seen = 1; // mark as seen
+		arrow = nextArrow;
+		arrow->seen = 1; // mark as seen
 
 		nextArrow = search_adjacent_arrow(width, height, grid, type, inner, &xd, &yd);
 		type = BMOL_ARR_NONE;
@@ -248,7 +248,7 @@ static int make_path(bmol_outliner* outliner, int x, int y, int width, int heigh
 
 		// end path segment if arrow changes
 		// and ignore last path segment
-		if (type != prevtype && type) {
+		if (type != prevType && type) {
 			int dx, dy;
 
 			real_coords(type, xd, yd, &xr, &yr);
@@ -259,11 +259,11 @@ static int make_path(bmol_outliner* outliner, int x, int y, int width, int heigh
 			yp = yr;
 
 			// add path segment
-			if (push_segment(outliner, prevtype, dx, dy) < 0) {
+			if (push_segment(outliner, prevType, dx, dy) < 0) {
 				return-1;
 			}
 
-			prevtype = type;
+			prevType = type;
 		}
 	}
 	while (type);
