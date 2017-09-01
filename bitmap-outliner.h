@@ -40,7 +40,7 @@ typedef struct {
 	int height;              ///< Bitmap height.
 	uint8_t const* data;     ///< Bitmap data.
 	bmol_path_seg* segments; ///< Path segment buffer.
-	int segments_count;      ///< Path segment buffer length.
+	int segments_size;       ///< Path segment buffer length.
 	int segments_cap;        ///< Path segment buffer capacity.
 	bmol_arrow arrow_grid[]; ///< Grid arrows.
 } bmol_outliner;
@@ -50,10 +50,17 @@ typedef struct {
  *
  * @param width The bitmap width.
  * @param height The bitmap height.
- * @param data The bitmap data.
- * @return Outliner obect on success.
+ * @return Outliner object on success.
  */
-extern bmol_outliner* bmol_alloc(uint8_t const* data, int width, int height);
+extern bmol_outliner* bmol_alloc(int width, int height);
+
+/**
+ * Allocate outliner object.
+ *
+ * @param outliner The outline robject.
+ * @param data The bitmap data.
+ */
+extern void bmol_set_bitmap(bmol_outliner* outliner, uint8_t const* data);
 
 /**
  * Free outliner object.
@@ -65,8 +72,8 @@ extern void bmol_free(bmol_outliner* outliner);
 /**
  * Find paths in bitmap data.
  *
- * @param outliner The outline object.
- * @param out_length The number of path fragments.
+ * @param outliner The outliner object.
+ * @param out_size The number of path fragments.
  * @return The path fragments.
  */
-extern bmol_path_seg const* bmol_outliner_find_paths(bmol_outliner* outliner, int* out_length);
+extern bmol_path_seg const* bmol_outliner_find_paths(bmol_outliner* outliner, int* out_size);

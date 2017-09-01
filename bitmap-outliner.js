@@ -135,12 +135,10 @@ class BitmapOutliner {
 	 *
 	 * @param width Width of bitmap.
 	 * @param height Height of bitmap.
-	 * @param data The bitmap data as indexable object (e.g., Uint8Array).
 	 */
 	constructor(width, height, data) {
 		this.width = width;
 		this.height = height;
-		this.data = data;
 		this.grid = this.createGrid();
 		this.gridAccessor = new ArrowBitfield();
 		this.segments = [];
@@ -190,6 +188,15 @@ class BitmapOutliner {
 	 */
 	pushSegment(type, dx, dy) {
 		this.segments.push({type, dx, dy});
+	}
+
+	/**
+	 * Set bitmap data.
+	 *
+	 * @param data The bitmap data as indexable object (e.g., Uint8Array).
+	 */
+	setBitmap(data) {
+		this.data = data;
 	}
 
 	/**
@@ -418,6 +425,11 @@ class BitmapOutliner {
 		}
 	}
 
+	/**
+	 * Find paths in bitmap data.
+	 *
+	 * @return Array The path fragments.
+	 */
 	findPaths() {
 		this.segments.length = 0;
 
@@ -427,6 +439,11 @@ class BitmapOutliner {
 		return this.segments;
 	}
 
+	/**
+	 * Make SVG path from path segments.
+	 *
+	 * @return string The SVG path.
+	 */
 	svgPath() {
 		let segments = this.findPaths();
 
@@ -521,7 +538,9 @@ const data = new Uint8Array([
 	1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
 ]);
 
-var outliner = new BitmapOutliner(width, height, data);
+var outliner = new BitmapOutliner(width, height);
+
+outliner.setBitmap(data);
 
 let path = outliner.svgPath();
 let svg = `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg"><path d="${path}" fill="#000" fill-rule="evenodd"/></svg>`;
