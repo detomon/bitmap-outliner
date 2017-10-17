@@ -126,7 +126,6 @@ static int bmol_outliner_grow_segments(bmol_outliner* outliner) {
  * @return 0 on success.
  */
 static int push_segment(bmol_outliner* outliner, bmol_arr_type type, int dx, int dy) {
-	bmol_path_seg* segment;
 	bmol_path_seg* segments = outliner->segments;
 
 	if (outliner->segments_size >= outliner->segments_cap) {
@@ -137,7 +136,8 @@ static int push_segment(bmol_outliner* outliner, bmol_arr_type type, int dx, int
 		segments = outliner->segments;
 	}
 
-	segment = &segments[outliner->segments_size++];
+	bmol_path_seg* segment = &segments[outliner->segments_size++];
+
 	segment->type = type;
 	segment->dx = dx;
 	segment->dy = dy;
@@ -161,9 +161,9 @@ static bmol_arrow* search_adjacent_arrow(int width, int height, bmol_arrow grid[
 
 	// search for adjacent arrows in precedence order
 	for (int n = 0; n < 4; n++) {
-		arrow_next* search = &arrows[n];
-		int xn = *xd + search->dx;
-		int yn = *yd + search->dy;
+		arrow_next const* search = &arrows[n];
+		int const xn = *xd + search->dx;
+		int const yn = *yd + search->dy;
 		bmol_arrow* nextArrow = &grid[yn][xn];
 
 		// follow adjacent arrow
@@ -283,7 +283,7 @@ static int make_path(bmol_outliner* outliner, int x, int y, int width, int heigh
 static void set_path_type(bmol_outliner* outliner, int x, int y, int width, int height, bmol_arrow grid[height * 2 + 3][width + 3]) {
 	bmol_arrow* arrow = &grid[y][x];
 	bmol_arr_type type = arrow->type;
-	int inner = (type == BMOL_ARR_LEFT);
+	int const inner = (type == BMOL_ARR_LEFT);
 
 	do {
 		arrow_next* arrows = &states[type][inner][1]; // ignore opponent arrow
@@ -322,8 +322,8 @@ static void set_path_type(bmol_outliner* outliner, int x, int y, int width, int 
  * @param grid Grid to search for paths.
  */
 static int search_paths(bmol_outliner* outliner, int width, int height, bmol_arrow grid[height * 2 + 3][width + 3]) {
-	int gridWidth = width + 3;
-	int gridHeight = height * 2 + 3;
+	int const gridWidth = width + 3;
+	int const gridHeight = height * 2 + 3;
 
 	// set arrow types
 	for (int y = 1; y < gridHeight - 1; y += 2) {
@@ -391,10 +391,9 @@ static void set_arrows(int width, int height, uint8_t const map[height][width], 
 }
 
 bmol_outliner* bmol_alloc(int width, int height) {
-	size_t size;
 	bmol_outliner* outliner;
+	size_t const size = (width + 3) * (height * 2 + 3) * sizeof(outliner->arrow_grid[0]);
 
-	size = (width + 3) * (height * 2 + 3) * sizeof(outliner->arrow_grid[0]);
 	outliner = calloc(1, sizeof(*outliner) + size);
 
 	if (!outliner) {
@@ -405,7 +404,7 @@ bmol_outliner* bmol_alloc(int width, int height) {
 	outliner->height = height;
 
 	if (bmol_outliner_grow_segments(outliner) != 0) {
-		free(outliner);
+		bmol_free(outliner);
 
 		return NULL;
 	}
@@ -423,8 +422,8 @@ void bmol_free(bmol_outliner* outliner) {
 }
 
 bmol_path_seg const* bmol_outliner_find_paths(bmol_outliner* outliner, int* out_size) {
-	int width = outliner->width;
-	int height = outliner->height;
+	int const width = outliner->width;
+	int const height = outliner->height;
 	bmol_arrow* grid = outliner->arrow_grid;
 	uint8_t const* data = outliner->data;
 
