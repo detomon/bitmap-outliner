@@ -1,11 +1,11 @@
 /**
  * Arrow types.
  */
-/*export*/ const BMOL_ARR_NONE  = 0;
-/*export*/ const BMOL_ARR_RIGHT = 1;
-/*export*/ const BMOL_ARR_LEFT  = 2;
-/*export*/ const BMOL_ARR_DOWN  = 3;
-/*export*/ const BMOL_ARR_UP    = 4;
+const BMOL_ARR_NONE  = 0;
+const BMOL_ARR_RIGHT = 1;
+const BMOL_ARR_LEFT  = 2;
+const BMOL_ARR_DOWN  = 3;
+const BMOL_ARR_UP    = 4;
 
 /**
  * The arrow states.
@@ -135,10 +135,12 @@ class BitmapOutliner {
 	 *
 	 * @param width Width of bitmap.
 	 * @param height Height of bitmap.
+	 * @param data The bitmap data as indexable object (e.g., Uint8Array).
 	 */
 	constructor(width, height, data) {
 		this.width = width;
 		this.height = height;
+		this.data = data;
 		this.grid = this.createGrid();
 		this.gridAccessor = new ArrowBitfield();
 		this.segments = [];
@@ -148,11 +150,11 @@ class BitmapOutliner {
 	 * Create empty arrow grid.
 	 */
 	createGrid() {
-		let gridWidth = this.width + 3;
-		let gridHeight = this.height * 2 + 3;
-		let grid = new Array(gridHeight);
+		const gridWidth = this.width + 3;
+		const gridHeight = this.height * 2 + 3;
+		const grid = new Array(gridHeight);
 
-		for (var y = 0; y < gridHeight; y++) {
+		for (let y = 0; y < gridHeight; y++) {
 			grid[y] = new Uint8Array(gridWidth);
 		}
 
@@ -175,7 +177,7 @@ class BitmapOutliner {
 			[BMOL_ARR_UP]:    {x: 0, y: 1},
 		};
 
-		var real = realDelta[type];
+		let real = realDelta[type];
 
 		return {
 			xr: gx - 1 + real.x,
@@ -203,12 +205,12 @@ class BitmapOutliner {
 	 * Fill arrow grid.
 	 */
 	setArrows() {
-		var x, y, p, t;
-		let width = this.width;
-		let height = this.height;
-		let map = this.data;
-		let grid = this.grid;
-		let bitfield = this.gridAccessor;
+		let x, y, p, t;
+		const width = this.width;
+		const height = this.height;
+		const map = this.data;
+		const grid = this.grid;
+		const bitfield = this.gridAccessor;
 
 		for (x = 0; x < width; x++) {
 			for (y = 0, t = 0; y < height; y++) {
@@ -246,16 +248,16 @@ class BitmapOutliner {
 	 * @param yd Arrow Y-coordinate.
 	 */
 	searchAdjacentArrow(type, inner, xd, yd) {
-		let arrows = states[type][inner];
-		let grid = this.grid;
-		let bitfield = this.gridAccessor;
+		const arrows = states[type][inner];
+		const grid = this.grid;
+		const bitfield = this.gridAccessor;
 
 		// search for adjacent arrows in precedence order
-		for (var n = 0; n < 4; n++) {
-			let search = arrows[n];
-			let xn = xd + search.dx;
-			let yn = yd + search.dy;
-			let nextArrow = bitfield.at(grid[yn], xn);
+		for (let n = 0; n < 4; n++) {
+			const search = arrows[n];
+			const xn = xd + search.dx;
+			const yn = yd + search.dy;
+			const nextArrow = bitfield.at(grid[yn], xn);
 
 			// follow adjacent arrow
 			if (nextArrow.type === search.arrow && !nextArrow.seen) {
@@ -305,15 +307,15 @@ class BitmapOutliner {
 		var xd = x;
 		var yd = y;
 		var xp, yp;
-		let grid = this.grid;
-		let bitfield = this.gridAccessor;
-		var arrow = bitfield.at(grid[yd], xd);
+		const grid = this.grid;
+		const bitfield = this.gridAccessor;
+		let arrow = bitfield.at(grid[yd], xd);
 		var nextArrow = arrow;
-		var type = arrow.type;
+		let type = arrow.type;
 		let inner = +(type === BMOL_ARR_LEFT);
-		var prevType = type;
+		let prevType = type;
 
-		var {xr, yr} = this.realCoords(type, xd, yd);
+		let {xr, yr} = this.realCoords(type, xd, yd);
 
 		xp = xr;
 		yp = yr;
@@ -324,7 +326,7 @@ class BitmapOutliner {
 			arrow = nextArrow;
 			arrow.seen = 1; // mark as seen
 
-			var next = this.searchAdjacentArrow(type, inner, xd, yd);
+			const next = this.searchAdjacentArrow(type, inner, xd, yd);
 			type = BMOL_ARR_NONE;
 
 			if (next) {
@@ -358,11 +360,11 @@ class BitmapOutliner {
 	 * @param y First path arrow.
 	 */
 	setPathType(x, y) {
-		let grid = this.grid;
-		let bitfield = this.gridAccessor;
+		const grid = this.grid;
+		const bitfield = this.gridAccessor;
 		let arrow = bitfield.at(grid[y], x);
 		let type = arrow.type;
-		let inner = +(type === BMOL_ARR_LEFT);
+		const inner = +(type === BMOL_ARR_LEFT);
 
 		do {
 			let arrows = states[type][inner];
@@ -374,7 +376,7 @@ class BitmapOutliner {
 			type = BMOL_ARR_NONE;
 
 			// search for adjacent arrows in precedence order
-			for (var n = 1; n < 4; n++) {
+			for (let n = 1; n < 4; n++) {
 				let search = arrows[n];
 				let xn = x + search.dx;
 				let yn = y + search.dy;
@@ -397,15 +399,15 @@ class BitmapOutliner {
 	 * Search all paths in arrow grid.
 	 */
 	searchPaths() {
-		let gridWidth = this.width + 3;
-		let gridHeight = this.height * 2 + 3;
-		let grid = this.grid;
-		let bitfield = this.gridAccessor;
+		const gridWidth = this.width + 3;
+		const gridHeight = this.height * 2 + 3;
+		const grid = this.grid;
+		const bitfield = this.gridAccessor;
 
 		// set arrow types
-		for (var y = 1; y < gridHeight - 1; y += 2) {
-			for (var x = 1; x < gridWidth - 1; x++) {
-				var arrow = bitfield.at(grid[y], x);
+		for (let y = 1; y < gridHeight - 1; y += 2) {
+			for (let x = 1; x < gridWidth - 1; x++) {
+				let arrow = bitfield.at(grid[y], x);
 
 				if (arrow.type && !arrow.visited) {
 					this.setPathType(x, y);
@@ -414,9 +416,9 @@ class BitmapOutliner {
 		}
 
 		// search right and left arrows in grid
-		for (var y = 1; y < gridHeight - 1; y += 2) {
-			for (var x = 1; x < gridWidth - 1; x++) {
-				var arrow = bitfield.at(grid[y], x);
+		for (let y = 1; y < gridHeight - 1; y += 2) {
+			for (let x = 1; x < gridWidth - 1; x++) {
+				let arrow = bitfield.at(grid[y], x);
 
 				if (arrow.type && !arrow.seen) {
 					this.makePath(x, y);
@@ -445,7 +447,7 @@ class BitmapOutliner {
 	 * @return string The SVG path.
 	 */
 	svgPath() {
-		let segments = this.findPaths();
+		const segments = this.findPaths();
 
 		let path = segments.reduce((path, segment) => {
 			switch (segment.type) {
