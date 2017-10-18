@@ -100,7 +100,10 @@ int main() {
 
 	bmol_outliner_svg_path(outliner, path, sizeof(path), &size);
 
-	printf("<svg viewBox=\"0 0 %d %d\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"%s\" fill=\"#000\" fill-rule=\"evenodd\"/></svg>\n", width, height, path);
+	printf(
+		"<svg viewBox=\"0 0 %d %d\" xmlns=\"http://www.w3.org/2000/svg\">\n"
+		"	<path d=\"%s\" fill=\"#000\" fill-rule=\"evenodd\"/>\n"
+		"</svg>\n", width, height, path);
 
 	printf("\n");
 	bmol_print_grid(outliner);
