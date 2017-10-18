@@ -3,6 +3,13 @@
 #include "bitmap-outliner.h"
 
 /**
+ * Calculate the worst case path length.
+ *
+ * @return The maximum length of the SVG path string.
+ */
+extern size_t bmol_outliner_svg_path_len(bmol_outliner* outliner);
+
+/**
  * Create SVG path from segments.
  *
  * @param outliner The outline object.

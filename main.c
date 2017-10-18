@@ -95,8 +95,8 @@ int main() {
 		exit(1);
 	}
 
-	size_t size;
-	char path[1024];
+	size_t size = bmol_outliner_svg_path_len(outliner);
+	char path[size];
 
 	bmol_outliner_svg_path(outliner, path, sizeof(path), &size);
 

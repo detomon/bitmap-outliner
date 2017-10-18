@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,6 +80,17 @@ static void write_svg(bmol_path_seg const* segments, int count, bmol_buffer_ctx*
 	}
 
 	append_string(ctx, "z");
+}
+
+size_t bmol_outliner_svg_path_len(bmol_outliner* outliner) {
+	int const w = outliner->width;
+	int const h = outliner->height;
+	int const xn = (w + 2) / 2;
+	int const yn = (h + 2) / 2;
+	int const xl = log10(w) + 1;
+	int const yl = log10(h) + 1;
+
+	return xn * yn * (11 + xl + yl);
 }
 
 void bmol_outliner_svg_path(bmol_outliner* outliner, char buffer[], size_t buf_size, size_t* out_size) {
