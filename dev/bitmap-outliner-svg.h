@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @file
+ *
+ * Contains a function to gnerate an SVG path.
+ */
+
 #include "bitmap-outliner.h"
 
 /**
@@ -13,7 +19,8 @@ extern size_t bmol_outliner_svg_path_len(bmol_outliner* outliner);
  * Create SVG path from segments.
  *
  * @param outliner The outline object.
- * @param out_size The string length.
- * @return The SVG path string.
+ * @param buffer The buffer to write the SVG path into.
+ * @param buf_size The buffer capacity.
+ * @return The length of the generated SVG path.
  */
-extern void bmol_outliner_svg_path(bmol_outliner* outliner, char buffer[], size_t buf_size, size_t* out_size);
+extern size_t bmol_outliner_svg_path(bmol_outliner* outliner, char buffer[], size_t buf_size);
