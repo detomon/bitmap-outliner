@@ -1,6 +1,6 @@
 # Bitmap Outliner
 
-The algorithm converts a bitmap to vector paths enclosing the pixel groups.
+The algorithm converts a bitmap image to vector paths enclosing the pixel groups.
 
 ![Conversion Diagram](assets/conversion-diagram.svg)
 
@@ -31,9 +31,10 @@ The generated SVG path will look like this (line breaks are added to separate th
 </svg>
 ```
 
-## C
+## C Example
 
 ```c
+// the bitmap data
 int const width = 6;
 int const height = 6;
 uint8_t const data[] = {
@@ -45,26 +46,38 @@ uint8_t const data[] = {
 	1, 0, 1, 1 ,1, 0,
 };
 
+// allocate outliner
 bmol_outliner* outliner = bmol_alloc(width, height, data);
 
+// find paths in bitmap
 bmol_outliner_find_paths(outliner, NULL);
 
+// calculate SVG path length (needs some performance).
+// for numerous calls to `bmol_outliner_svg_path`,
+// better use a large buffer directly.
 size_t path_len = bmol_outliner_svg_path_len(outliner);
+
+// be aware to not use large buffers on the stack!
+// ok for small bitmaps
 char path[path_len];
 
+// write SVG path to `path`
 bmol_outliner_svg_path(outliner, path, path_len);
 
+// output SVG
 printf(
 	"<svg viewBox=\"0 0 %d %d\" xmlns=\"http://www.w3.org/2000/svg\">\n"
 	"	<path d=\"%s\" fill=\"#000\" fill-rule=\"evenodd\"/>\n"
 	"</svg>\n", width, height, path);
 
+// free outliner
 bmol_free(outliner);
 ```
 
-## Javascript
+## Javascript Example
 
 ```js
+// the bitmap data
 const width = 6;
 const height = 6;
 const data = new Uint8Array([
@@ -76,10 +89,13 @@ const data = new Uint8Array([
 	1, 0, 1, 1 ,1, 0,
 ]);
 
+// create outliner
 let outliner = new BitmapOutliner(width, height, data);
 
+// get SVG path; implicitly calls `outliner.findPaths()`
 let path = outliner.svgPath();
 
+// output SVG
 console.log(
 `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
 	<path d="${path}" fill="#000" fill-rule="evenodd"/>
