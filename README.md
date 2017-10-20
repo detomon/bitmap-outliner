@@ -6,7 +6,7 @@ The algorithm converts a bitmap image to vector paths enclosing the pixel groups
 
 *The outlined paths on the right side are slightly shifted to show their way around the pixels; they will, of course, be aligned with the pixel borders.*
 
-## Paths
+## SVG Paths
 
 Given the following bitmap from the above image:
 
@@ -34,52 +34,70 @@ The generated SVG path will look like this (line breaks are added to separate th
 ## C Example
 
 ```c
-// the bitmap data
-int const width = 6;
-int const height = 6;
-uint8_t const data[] = {
-	0, 1, 1, 1 ,0, 0,
-	1, 0, 1, 0 ,0, 1,
-	1, 1, 0, 0 ,1, 1,
-	1, 0, 0, 1 ,0, 1,
-	0, 0, 1, 0 ,1, 1,
-	1, 0, 1, 1 ,1, 0,
-};
+#include <stdio.h>
+#include "bitmap-outliner.h"
 
-// allocate outliner
-bmol_outliner* outliner = bmol_alloc(width, height, data);
+int main() {
+	// the bitmap data
+	int const width = 6;
+	int const height = 6;
+	uint8_t const data[] = {
+		0, 1, 1, 1 ,0, 0,
+		1, 0, 1, 0 ,0, 1,
+		1, 1, 0, 0 ,1, 1,
+		1, 0, 0, 1 ,0, 1,
+		0, 0, 1, 0 ,1, 1,
+		1, 0, 1, 1 ,1, 0,
+	};
+	
+	// allocate outliner
+	bmol_outliner* outliner = bmol_alloc(width, height, data);
+	
+	// find paths in bitmap
+	bmol_find_paths(outliner, NULL);
+	
+	// calculate SVG path length (needs some performance).
+	// for numerous calls to `bmol_outliner_svg_path`,
+	// better use a large enough buffer directly.
+	size_t path_len = bmol_svg_path_len(outliner);
+	
+	// ok for small bitmaps; be aware to not use large buffers on the stack!
+	char path[path_len];
+	
+	// write SVG path to `path`
+	bmol_svg_path(outliner, path, path_len);
+	
+	// output SVG
+	printf(
+		"<svg viewBox=\"0 0 %d %d\" xmlns=\"http://www.w3.org/2000/svg\">\n"
+		"	<path d=\"%s\" fill=\"#000\" fill-rule=\"evenodd\"/>\n"
+		"</svg>\n", width, height, path);
+	
+	// free outliner
+	bmol_free(outliner);
+	
+	return 0;
+}
+```
 
-// find paths in bitmap
-bmol_find_paths(outliner, NULL);
+### Run
 
-// calculate SVG path length (needs some performance).
-// for numerous calls to `bmol_outliner_svg_path`,
-// better use a large buffer directly.
-size_t path_len = bmol_svg_path_len(outliner);
+Execute the following command to run `main.c`:
 
-// be aware to not use large buffers on the stack!
-// ok for small bitmaps
-char path[path_len];
-
-// write SVG path to `path`
-bmol_svg_path(outliner, path, path_len);
-
-// output SVG
-printf(
-	"<svg viewBox=\"0 0 %d %d\" xmlns=\"http://www.w3.org/2000/svg\">\n"
-	"	<path d=\"%s\" fill=\"#000\" fill-rule=\"evenodd\"/>\n"
-	"</svg>\n", width, height, path);
-
-// free outliner
-bmol_free(outliner);
+```sh
+$ sh main.c
 ```
 
 ## Javascript Example
 
 ```js
-// the bitmap data
+import 'src/bitmap-outliner';
+
+// the bitmap size
 const width = 6;
 const height = 6;
+
+// data can be any indexable array
 const data = new Uint8Array([
 	0, 1, 1, 1 ,0, 0,
 	1, 0, 1, 0 ,0, 1,
