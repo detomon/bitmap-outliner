@@ -107,7 +107,7 @@ static void real_coords(bmol_arr_type type, int gx, int gy, int* rx, int* ry) {
  * @param outliner The outline object.
  * @return 0 on success.
  */
-static int bmol_outliner_grow_segments(bmol_outliner* outliner) {
+static int grow_segments(bmol_outliner* outliner) {
 	bmol_path_seg* segments = outliner->segments;
 	int segments_cap = outliner->segments_cap * 2 + 1;
 
@@ -140,7 +140,7 @@ static int push_segment(bmol_outliner* outliner, bmol_arr_type type, int dx, int
 	bmol_path_seg* segments = outliner->segments;
 
 	if (outliner->segments_size >= outliner->segments_cap) {
-		if (bmol_outliner_grow_segments(outliner) < 0) {
+		if (grow_segments(outliner) < 0) {
 			return -1;
 		}
 
@@ -415,7 +415,7 @@ bmol_outliner* bmol_alloc(int width, int height, uint8_t const* data) {
 	outliner->height = height;
 	outliner->data = data;
 
-	if (bmol_outliner_grow_segments(outliner) != 0) {
+	if (grow_segments(outliner) != 0) {
 		bmol_free(outliner);
 
 		return NULL;
