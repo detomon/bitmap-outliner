@@ -27,7 +27,7 @@ int main() {
 	bmol_find_paths(outliner, NULL);
 
 	// calculate SVG path length (needs some performance).
-	// for numerous calls to `bmol_outliner_svg_path`,
+	// for numerous calls to `bmol__svg_path`,
 	// better use a large enough buffer directly.
 	size_t path_len = bmol_svg_path_len(outliner);
 

@@ -11,12 +11,12 @@ This algorithm converts a bitmap image to vector paths enclosing the pixel group
 Given the following bitmap from the above image:
 
 ```c
-0, 1, 1, 1 ,0, 0,
-1, 0, 1, 0 ,0, 1,
-1, 1, 0, 0 ,1, 1,
-1, 0, 0, 1 ,0, 1,
-0, 0, 1, 0 ,1, 1,
-1, 0, 1, 1 ,1, 0,
+0, 1, 1, 1, 0, 0,
+1, 0, 1, 0, 0, 1,
+1, 1, 0, 0, 1, 1,
+1, 0, 0, 1, 0, 1,
+0, 0, 1, 0, 1, 1,
+1, 0, 1, 1, 1, 0,
 ```
 
 The generated SVG path will look like this (line breaks are added to separate the path loops):
@@ -37,9 +37,11 @@ The generated SVG path will look like this (line breaks are added to separate th
 #include <stdio.h>
 #include "bitmap-outliner.h"
 
-// the bitmap data
+// the bitmap size
 int const width = 6;
 int const height = 6;
+
+// the bitmap data
 uint8_t const data[] = {
 	0, 1, 1, 1 ,0, 0,
 	1, 0, 1, 0 ,0, 1,
@@ -57,7 +59,7 @@ int main() {
 	bmol_find_paths(outliner, NULL);
 	
 	// calculate SVG path length (needs some performance).
-	// for numerous calls to `bmol_outliner_svg_path`,
+	// for numerous calls to `bmol_svg_path`,
 	// better use a large enough buffer directly.
 	size_t path_len = bmol_svg_path_len(outliner);
 	
