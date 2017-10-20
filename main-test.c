@@ -1,14 +1,10 @@
 #if 0
-gcc -Wall -O2 -I. -o /tmp/`basename $0` $0 bitmap-outliner.c dev/bitmap-outliner-print.c \
+gcc -Wall -O2 -I./src -o /tmp/`basename $0` $0 src/bitmap-outliner.c src/dev/bitmap-outliner-print.c \
 	&& /tmp/`basename $0` $@
 exit
 #endif
 
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include "bitmap-outliner.h"
 #include "dev/bitmap-outliner-print.h"
 

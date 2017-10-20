@@ -1,5 +1,5 @@
 #if 0
-gcc -Wall -O2 -I. -o /tmp/`basename $0` $0 bitmap-outliner.c \
+gcc -Wall -O2 -I./src -o /tmp/`basename $0` $0 src/bitmap-outliner.c \
 	&& /tmp/`basename $0` $@
 exit
 #endif
