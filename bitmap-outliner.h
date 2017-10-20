@@ -56,14 +56,6 @@ typedef struct {
 extern bmol_outliner* bmol_alloc(int width, int height, uint8_t const* data);
 
 /**
- * Set bitmap data. Must have the same dimensions as the current one.
- *
- * @param outliner The outline robject.
- * @param data The new bitmap data.
- */
-extern void bmol_set_bitmap(bmol_outliner* outliner, uint8_t const* data);
-
-/**
  * Free outliner object.
  *
  * @param outliner The outline object.
@@ -77,4 +69,29 @@ extern void bmol_free(bmol_outliner* outliner);
  * @param out_size The number of path fragments.
  * @return The path fragments.
  */
-extern bmol_path_seg const* bmol_outliner_find_paths(bmol_outliner* outliner, int* out_size);
+extern bmol_path_seg const* bmol_find_paths(bmol_outliner* outliner, int* out_size);
+
+/**
+ * Calculate the SVG path length.
+ *
+ * @return The length of the SVG path string.
+ */
+extern size_t bmol_svg_path_len(bmol_outliner* outliner);
+
+/**
+ * Create SVG path from segments.
+ *
+ * @param outliner The outline object.
+ * @param buffer The buffer to write the SVG path into.
+ * @param buf_size The buffer capacity.
+ * @return The length of the generated SVG path.
+ */
+extern size_t bmol_svg_path(bmol_outliner* outliner, char buffer[], size_t buf_size);
+
+/**
+ * Set bitmap data. Must have the same dimensions as the current one.
+ *
+ * @param outliner The outline robject.
+ * @param data The new bitmap data.
+ */
+extern void bmol_set_bitmap(bmol_outliner* outliner, uint8_t const* data);

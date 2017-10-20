@@ -50,19 +50,19 @@ uint8_t const data[] = {
 bmol_outliner* outliner = bmol_alloc(width, height, data);
 
 // find paths in bitmap
-bmol_outliner_find_paths(outliner, NULL);
+bmol_find_paths(outliner, NULL);
 
 // calculate SVG path length (needs some performance).
 // for numerous calls to `bmol_outliner_svg_path`,
 // better use a large buffer directly.
-size_t path_len = bmol_outliner_svg_path_len(outliner);
+size_t path_len = bmol_svg_path_len(outliner);
 
 // be aware to not use large buffers on the stack!
 // ok for small bitmaps
 char path[path_len];
 
 // write SVG path to `path`
-bmol_outliner_svg_path(outliner, path, path_len);
+bmol_svg_path(outliner, path, path_len);
 
 // output SVG
 printf(
