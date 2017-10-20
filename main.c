@@ -1,5 +1,5 @@
 #if 0
-clang -Wall -O2 -o /tmp/`basename $0` $0 -I. bitmap-outliner.c dev/bitmap-outliner-print.c dev/bitmap-outliner-svg.c -lqrencode \
+gcc -Wall -O2 -I. -o /tmp/`basename $0` $0 bitmap-outliner.c dev/bitmap-outliner-print.c \
 	&& /tmp/`basename $0` $@
 exit
 #endif
