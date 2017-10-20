@@ -372,11 +372,13 @@ static int search_paths(bmol_outliner* outliner, int width, int height, bmol_arr
  * @param grid Grid to fill with arrows.
  */
 static void set_arrows(int width, int height, uint8_t const map[height][width], bmol_arrow grid[height * 2 + 3][width + 3]) {
-	int x, y, p, t;
+	int x, y, t;
 
 	for (x = 0; x < width; x++) {
 		for (y = 0, t = 0; y < height; y++) {
-			if ((p = map[y][x]) != t) {
+			int p = map[y][x] != 0;
+
+			if (p != t) {
 				grid[y * 2 + 1][x + 1].type = t ? BMOL_ARR_LEFT : BMOL_ARR_RIGHT;
 				t = p;
 			}
@@ -389,7 +391,9 @@ static void set_arrows(int width, int height, uint8_t const map[height][width], 
 
 	for (y = 0; y < height; y++) {
 		for (x = 0, t = 0; x < width; x++) {
-			if ((p = map[y][x]) != t) {
+			int p = map[y][x] != 0;
+
+			if (p != t) {
 				grid[y * 2 + 2][x + 1].type = t ? BMOL_ARR_DOWN : BMOL_ARR_UP;
 				t = p;
 			}
