@@ -1,6 +1,6 @@
 # Bitmap Outliner
 
-The algorithm converts a bitmap image to vector paths enclosing the pixel groups.
+This algorithm converts a bitmap image to vector paths enclosing the pixel groups.
 
 ![Conversion Diagram](assets/conversion-diagram.svg)
 
