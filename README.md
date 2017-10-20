@@ -37,19 +37,19 @@ The generated SVG path will look like this (line breaks are added to separate th
 #include <stdio.h>
 #include "bitmap-outliner.h"
 
+// the bitmap data
+int const width = 6;
+int const height = 6;
+uint8_t const data[] = {
+	0, 1, 1, 1 ,0, 0,
+	1, 0, 1, 0 ,0, 1,
+	1, 1, 0, 0 ,1, 1,
+	1, 0, 0, 1 ,0, 1,
+	0, 0, 1, 0 ,1, 1,
+	1, 0, 1, 1 ,1, 0,
+};
+
 int main() {
-	// the bitmap data
-	int const width = 6;
-	int const height = 6;
-	uint8_t const data[] = {
-		0, 1, 1, 1 ,0, 0,
-		1, 0, 1, 0 ,0, 1,
-		1, 1, 0, 0 ,1, 1,
-		1, 0, 0, 1 ,0, 1,
-		0, 0, 1, 0 ,1, 1,
-		1, 0, 1, 1 ,1, 0,
-	};
-	
 	// allocate outliner
 	bmol_outliner* outliner = bmol_alloc(width, height, data);
 	
