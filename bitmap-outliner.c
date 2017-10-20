@@ -485,16 +485,16 @@ static void append_string(buffer_ctx* ctx, char const* format, ...) {
 }
 
 /**
- * Calculate log2 of integer.
+ * Calculate log2 of an integer.
  *
  * https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog
  *
  * @param n The value to get the log2 from.
  * @return log2 of the given integer.
  */
-static unsigned log2_fast(unsigned n) {
-	unsigned r;
-	unsigned shift;
+static uint32_t log2_fast(uint32_t n) {
+	uint32_t r;
+	uint32_t shift;
 
 	r =     (n > 0xFFFF) << 4; n >>= r;
 	shift = (n > 0xFF  ) << 3; n >>= shift; r |= shift;
@@ -506,19 +506,18 @@ static unsigned log2_fast(unsigned n) {
 }
 
 /**
- * Calculate log10 of integer.
+ * Calculate log10 of an integer.
  *
  * https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog10
  *
  * @param n The value to get the log10 from.
  * @return log10 of the given integer.
  */
-static int log10_fast(unsigned n) {
-	static unsigned const pow_10[] = {
+static int log10_fast(uint32_t n) {
+	static uint32_t const pow_10[] = {
 		1, 10, 100, 1000, 10000, 100000,
 		1000000, 10000000, 100000000, 1000000000
 	};
-
 
 	int t = (log2_fast(n) + 1) * 1233 >> 12;
 	int r = t - (n < pow_10[t]);
