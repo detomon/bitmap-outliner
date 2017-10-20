@@ -2,7 +2,7 @@
 
 The algorithm converts a bitmap to vector paths enclosing the pixel groups.
 
-![Conversion Diagram](conversion-diagram.svg)
+![Conversion Diagram](assets/conversion-diagram.svg)
 
 *The outlined paths on the right side are slightly shifted to show their way around the pixels; they will, of course, be aligned with the pixel borders.*
 
