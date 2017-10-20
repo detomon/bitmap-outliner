@@ -50,15 +50,16 @@ typedef struct {
  *
  * @param width The bitmap width.
  * @param height The bitmap height.
+ * @param data The bitmap data.
  * @return Outliner object on success.
  */
-extern bmol_outliner* bmol_alloc(int width, int height);
+extern bmol_outliner* bmol_alloc(int width, int height, uint8_t const* data);
 
 /**
- * Allocate outliner object.
+ * Set bitmap data. Must have the same dimensions as the current one.
  *
  * @param outliner The outline robject.
- * @param data The bitmap data.
+ * @param data The new bitmap data.
  */
 extern void bmol_set_bitmap(bmol_outliner* outliner, uint8_t const* data);
 
