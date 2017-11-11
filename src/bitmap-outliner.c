@@ -11,9 +11,9 @@
  * Information about how to proceed to next arrow.
  */
 typedef struct {
-	bmol_arr_type arrow; ///< Type of arrow.
-	int8_t dx;           ///< Relative to current position.
-	int8_t dy;           ///< Relative to current position.
+	bmol_arr_type arrow:8; ///< Type of arrow.
+	int8_t dx;             ///< Relative to current position.
+	int8_t dy;             ///< Relative to current position.
 } const arrow_next;
 
 /**
@@ -81,8 +81,8 @@ static void real_coords(bmol_arr_type type, int gx, int gy, int* rx, int* ry) {
 	 * Defines coordinates.
 	 */
 	typedef struct {
-		int x; ///< X-coordinate.
-		int y; ///< Y-coordinate.
+		int8_t x; ///< X-coordinate.
+		int8_t y; ///< Y-coordinate.
 	} coords;
 
 	/**
