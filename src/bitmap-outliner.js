@@ -456,7 +456,7 @@ export class BitmapOutliner {
 						path += 'z';
 					}
 
-					path += `M ${segment.dx} ${segment.dy}`;
+					path += `M${segment.dx},${segment.dy}`;
 					break;
 				}
 				case BMOL_ARR_RIGHT:

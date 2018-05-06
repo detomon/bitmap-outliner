@@ -543,7 +543,7 @@ static void write_svg(bmol_path_seg const* segments, int count, buffer_ctx* ctx)
 					append_string(ctx, "z");
 				}
 
-				append_string(ctx, "M %d %d", segment->dx, segment->dy);
+				append_string(ctx, "M%d,%d", segment->dx, segment->dy);
 				break;
 			}
 			case BMOL_ARR_RIGHT:
